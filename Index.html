@@ -1,0 +1,3594 @@
+<!-- ============================================================
+    DOC SSM SINGLE-PAGE DASHBOARD (Outline + TODO Script Sections)
+    PART 1 OF 4: HTML + CSS + SCRIPT SKELETON (NO DATA LOGIC YET)
+    - This is safe to paste as-is into Modern Script Editor
+    - Next messages will contain the 3 script sections to replace the TODO blocks:
+      (2/4) FOIAs section
+      (3/4) OIs section
+      (4/4) Records section
+    ============================================================ -->
+
+<div id="docSsmDashRoot"></div>
+
+<style>
+ /* ====== Layout + Theme ====== */
+ #docSsmDashRoot .docdash{font-family:Segoe UI, Arial, sans-serif;color:#0b1b2b;}
+ #docSsmDashRoot .docdash-topbar{
+   display:flex;align-items:center;justify-content:space-between;gap:12px;
+   padding:12px 14px;border-radius:12px;
+   background:linear-gradient(90deg,#0b4e88,#0a76c6);color:#fff;
+   box-shadow:0 8px 20px rgba(0,0,0,.18);
+ }
+ #docSsmDashRoot .docdash-brand .u-tag{display:inline-block;font-weight:800;margin-right:8px;opacity:.95;}
+ #docSsmDashRoot .docdash-brand .title{font-size:18px;font-weight:800;letter-spacing:.3px;}
+ #docSsmDashRoot .docdash-brand .subtitle{margin-left:10px;font-size:12px;opacity:.92;}
+ #docSsmDashRoot .docdash-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+ #docSsmDashRoot .tabbtn{
+   border:1px solid rgba(255,255,255,.35);
+   background:rgba(255,255,255,.08);
+   color:#fff;padding:8px 10px;border-radius:999px;cursor:pointer;
+   font-weight:700;font-size:13px;
+ }
+ #docSsmDashRoot .tabbtn.active{background:#fff;color:#0b4e88;border-color:#fff;}
+ #docSsmDashRoot .docdash-tools{display:flex;align-items:center;gap:10px;}
+ #docSsmDashRoot .btn{border:none;border-radius:10px;padding:8px 10px;cursor:pointer;font-weight:800;}
+ #docSsmDashRoot .btn-ghost{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.35);}
+ #docSsmDashRoot .btn-ghost:hover{background:rgba(255,255,255,.22);}
+ #docSsmDashRoot .statuspill{
+   padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.18);
+   border:1px solid rgba(255,255,255,.25);font-size:12px;white-space:nowrap;
+ }
+ #docSsmDashRoot .spinner{display:inline-block;width:10px;height:10px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-right:6px;vertical-align:-2px;}
+ @keyframes spin{to{transform:rotate(360deg);}}
+
+ #docSsmDashRoot .docdash-body{display:grid;grid-template-columns:360px 1fr;gap:14px;margin-top:12px;}
+ @media(max-width:1100px){#docSsmDashRoot .docdash-body{grid-template-columns:1fr;}}
+ #docSsmDashRoot .panel{background:#fff;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.10);border:1px solid #e6eef6;overflow:hidden;}
+ #docSsmDashRoot .panel-h{padding:10px 12px;background:linear-gradient(90deg,#0a76c6,#0b4e88);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:space-between;}
+ #docSsmDashRoot .panel-b{padding:10px 12px;}
+
+ #docSsmDashRoot .kpiRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+ #docSsmDashRoot .kpi{padding:10px;border-radius:12px;background:#f6fbff;border:1px solid #e2effa;}
+ #docSsmDashRoot .kpi .k{font-size:11px;opacity:.85;font-weight:800;letter-spacing:.3px;}
+ #docSsmDashRoot .kpi .v{font-size:20px;font-weight:900;margin-top:2px;}
+ #docSsmDashRoot .kpi .s{font-size:11px;opacity:.75;margin-top:2px;}
+
+ #docSsmDashRoot .filterGrid{display:grid;grid-template-columns:1fr;gap:10px;}
+ #docSsmDashRoot .frow label{display:block;font-weight:800;font-size:12px;margin-bottom:4px;}
+ #docSsmDashRoot .frow input[type=text],#docSsmDashRoot .frow select{width:100%;border:1px solid #d6e4f1;border-radius:10px;padding:8px 10px;outline:none;background:#fff;}
+ #docSsmDashRoot .chipbox{display:flex;flex-wrap:wrap;gap:6px;}
+ #docSsmDashRoot .chip{border:1px solid #d6e4f1;background:#fff;border-radius:999px;padding:6px 8px;font-size:12px;cursor:pointer;font-weight:700;}
+ #docSsmDashRoot .chip.on{background:#0a76c6;border-color:#0a76c6;color:#fff;}
+ #docSsmDashRoot .muted{opacity:.75;font-size:12px;}
+
+ #docSsmDashRoot .chartWrap{display:grid;grid-template-columns:1fr;gap:10px;}
+ #docSsmDashRoot .chart{padding:10px;border:1px solid #e6eef6;border-radius:12px;background:#fbfdff;}
+ #docSsmDashRoot .chartTitle{font-weight:900;font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;}
+ #docSsmDashRoot .chartTitle .hint{font-weight:700;font-size:11px;opacity:.7;}
+
+ #docSsmDashRoot .tableWrap{display:grid;grid-template-columns:1fr 360px;gap:14px;}
+ @media(max-width:1300px){#docSsmDashRoot .tableWrap{grid-template-columns:1fr;}}
+ #docSsmDashRoot .tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;}
+ #docSsmDashRoot .tbl th{position:sticky;top:0;background:#f2f7fd;border-bottom:1px solid #dbe8f6;text-align:left;padding:8px;font-weight:900;cursor:pointer;}
+ #docSsmDashRoot .tbl td{border-bottom:1px solid #eef4fb;padding:8px;vertical-align:top;}
+ #docSsmDashRoot .tbl tr:hover td{background:#fbfdff;}
+ #docSsmDashRoot .rowSel td{background:#eaf4ff !important;}
+ #docSsmDashRoot .badge{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:900;font-size:11px;border:1px solid #d6e4f1;background:#fff;}
+ #docSsmDashRoot .badge.good{background:#eafff0;border-color:#b7f2c8;}
+ #docSsmDashRoot .badge.warn{background:#fff7e6;border-color:#ffe2a8;}
+ #docSsmDashRoot .badge.bad{background:#ffecec;border-color:#ffc2c2;}
+ #docSsmDashRoot .pager{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:10px 12px;}
+ #docSsmDashRoot .pager .pbtn{border:1px solid #d6e4f1;background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:900;}
+ #docSsmDashRoot .pager .pbtn:disabled{opacity:.5;cursor:not-allowed;}
+
+ #docSsmDashRoot .detail{display:flex;flex-direction:column;gap:10px;}
+ #docSsmDashRoot .detail .box{border:1px solid #e6eef6;border-radius:12px;padding:10px;background:#fbfdff;}
+ #docSsmDashRoot .detail h3{margin:0;font-size:14px;}
+ #docSsmDashRoot .detail .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;}
+ #docSsmDashRoot .detail .meta .kv{background:#fff;border:1px solid #e6eef6;border-radius:10px;padding:8px;}
+ #docSsmDashRoot .detail .meta .k{font-weight:900;font-size:11px;opacity:.75;}
+ #docSsmDashRoot .detail .meta .v{margin-top:2px;font-weight:800;word-break:break-word;}
+ #docSsmDashRoot .detail pre{white-space:pre-wrap;margin:0;font-family:inherit;font-size:12px;}
+ #docSsmDashRoot .detail .actions{display:flex;gap:8px;flex-wrap:wrap;}
+ #docSsmDashRoot .detail .actions .btn2{border:1px solid #d6e4f1;background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer;font-weight:900;font-size:12px;}
+ #docSsmDashRoot .detail .actions .btn2.primary{background:#0a76c6;border-color:#0a76c6;color:#fff;}
+ #docSsmDashRoot .footnote{font-size:11px;opacity:.75;line-height:1.35;}
+
+
+
+</style>
+
+<script>
+(function(){
+ "use strict";
+
+ /* ============================================================
+    DOC SSM — Single Page Dashboard (Skeleton)
+    - This file is intentionally missing the 3 module implementations.
+    - You will paste each module section in the next 3 parts.
+    ============================================================ */
+
+/* ===================== GLOBAL ERROR SURFACE (PASTE RIGHT AFTER "use strict") ===================== */
+function _fatal(label, err){
+  try{
+    var msg = label + ": " + (err && err.message ? err.message : String(err));
+
+    // Try to show it in the pill if it exists
+    try{
+      if(typeof statusPill !== "undefined" && statusPill){
+        statusPill.textContent = msg;
+      }
+    }catch(e1){}
+
+    // Also print to console
+    try{ console.error(label, err); }catch(e2){}
+
+    // Inject a visible red box at the top of the web part
+    try{
+      var r = document.getElementById("docSsmDashRoot");
+      if(r){
+        var box = document.createElement("div");
+        box.style.padding = "10px 12px";
+        box.style.margin = "10px 0";
+        box.style.border = "1px solid #ffb3b3";
+        box.style.background = "#ffecec";
+        box.style.borderRadius = "12px";
+        box.style.fontFamily = "Segoe UI, Arial, sans-serif";
+        box.style.fontWeight = "700";
+        box.textContent = msg;
+
+        // Put it at the very top of the web part
+        r.insertBefore(box, r.firstChild);
+      }
+    }catch(e3){}
+  }catch(e4){}
+}
+
+ /* ===================== CONFIG ===================== */
+ var CONFIG = {
+   SITE_URL: "",
+
+   LISTS: {
+     // From DOC SSM Lists and Columns 2.txt
+     FOIA:  "BA57799F-5F18-4DF1-9501-6E306E264241",
+     TIME:  "622a3d54-5d1f-407d-8c6d-de85de9f5aa4",
+     POC:   "26c963fc-98b2-4360-baa3-386572290fd8",
+     RM:    "58e2105d-cb34-44a4-890a-715f6c3fa287",
+     RI:    "b0631573-5269-4a26-86eb-417014367ded",
+     OI:    "ff3dd122-3d04-4a6c-8f2e-bc31fd242967"
+   },
+
+   TOP: 5000,
+   TABLE_PAGE_SIZE: 25,
+
+   FOIA_CLOSED_STATUS: "Case Closed",
+
+   INACTIVITY_WARN: 14,
+   INACTIVITY_BAD:  30
+ };
+
+/* ===================== CONFIG ADD (place near your FOIA constants) ===================== */ 
+CONFIG.FOIA_CLOSED_STATUS = "Case Closed"; CONFIG.FOIA_TRANSFERRED_STATUS = "Transferred";
+
+ // Auto-detect site URL if blank
+ if(!CONFIG.SITE_URL){
+   var origin = window.location.origin;
+   var path = window.location.pathname;
+
+   var idx = path.toLowerCase().indexOf("/lists/");
+   if(idx > -1){ path = path.substring(0, idx); }
+
+   var spIdx = path.toLowerCase().indexOf("/sitepages/");
+   if(spIdx > -1){ path = path.substring(0, spIdx); }
+
+   CONFIG.SITE_URL = origin + path.replace(/\/$/, "");
+ }
+
+ /* ===================== DOM HELPERS ===================== */
+ function el(tag, cls, txt){
+   var e = document.createElement(tag);
+   if(cls) e.className = cls;
+   if(txt !== undefined && txt !== null) e.textContent = txt;
+   return e;
+ }
+ function empty(node){ while(node.firstChild) node.removeChild(node.firstChild); }
+ function on(node, evt, fn){ node.addEventListener(evt, fn); }
+ function esc(s){
+   if(s === null || s === undefined) return "";
+   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+ }
+ function fmtDate(d){
+   if(!d) return "";
+   var dt = new Date(d);
+   if(isNaN(dt.getTime())) return "";
+   var m = String(dt.getMonth()+1); if(m.length===1) m="0"+m;
+   var day = String(dt.getDate()); if(day.length===1) day="0"+day;
+   return dt.getFullYear()+"-"+m+"-"+day;
+ }
+ function fmtDateTime(d){
+   if(!d) return "";
+   var dt = new Date(d);
+   if(isNaN(dt.getTime())) return "";
+   var h = dt.getHours(); var ap = h>=12?"PM":"AM"; h = h%12; if(h===0) h=12;
+   var min = String(dt.getMinutes()); if(min.length===1) min="0"+min;
+   return fmtDate(d)+" "+h+":"+min+" "+ap;
+ }
+ function toNum(v){ var n = Number(v); return isNaN(n) ? 0 : n; }
+ function yearOf(d){
+   if(!d) return "";
+   var dt = new Date(d);
+   if(isNaN(dt.getTime())) return "";
+   return String(dt.getFullYear());
+ }
+
+ /* ===================== SHAREPOINT REST HELPERS ===================== */
+ function spGet(url){
+  return fetch(url, {
+    headers: { "Accept":"application/json;odata=nometadata" },
+    credentials: "same-origin"
+  }).then(function(r){
+    if(!r.ok){
+      return r.text().then(function(t){
+        var msg = "HTTP " + r.status + " " + r.statusText + "\nURL: " + url + "\nBODY: " + t;
+        throw new Error(msg);
+      });
+    }
+    return r.json();
+  });
+}
+
+
+ function spGetAll(listGuid, select, expand, filter, orderby, top){
+   var base = CONFIG.SITE_URL + "/_api/web/lists(guid'"+listGuid+"')/items";
+   var qs = [];
+   if(select) qs.push("$select="+encodeURIComponent(select));
+   if(expand) qs.push("$expand="+encodeURIComponent(expand));
+   if(filter) qs.push("$filter="+encodeURIComponent(filter));
+   if(orderby) qs.push("$orderby="+encodeURIComponent(orderby));
+   qs.push("$top="+encodeURIComponent(top || CONFIG.TOP));
+
+   var url = base + "?" + qs.join("&");
+   var all = [];
+
+   function loop(u){
+     return spGet(u).then(function(data){
+       if(data && data.value) all = all.concat(data.value);
+       if(data && data["odata.nextLink"]) return loop(data["odata.nextLink"]);
+       if(data && data["@odata.nextLink"]) return loop(data["@odata.nextLink"]);
+       return all;
+     });
+   }
+   return loop(url);
+ }
+
+ function spOpenItem(listGuid, itemId){
+   var u = CONFIG.SITE_URL + "/_layouts/15/listform.aspx?PageType=4&ListId="+encodeURIComponent(listGuid)+"&ID="+encodeURIComponent(itemId);
+   window.open(u, "_blank");
+ }
+
+function spGetFieldMap(listGuid){
+  var url = CONFIG.SITE_URL +
+    "/_api/web/lists(guid'" + listGuid + "')/fields" +
+    "?$select=Title,InternalName&$top=5000";
+  return spGet(url).then(function(data){
+    var map = {};
+    var i, f, title;
+    if(data && data.value){
+      for(i=0;i<data.value.length;i++){
+        f = data.value[i];
+        title = (f.Title || "").trim();
+        if(title) map[title] = f.InternalName;
+      }
+    }
+    return map;
+  });
+}
+
+
+ /* ===================== SVG BAR CHART (click-to-filter) ===================== */
+ function renderBarChart(container, title, dataPairs, activeValue, onClick){
+   empty(container);
+
+   var wrap = el("div","chart");
+   var t = el("div","chartTitle");
+   t.appendChild(el("div",null,title));
+   t.appendChild(el("div","hint","click bars to filter"));
+   wrap.appendChild(t);
+
+   var w = 320, h = 140, pad = 24;
+   var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+   svg.setAttribute("viewBox","0 0 "+w+" "+h);
+   svg.style.width="100%";
+   svg.style.height="140px";
+
+   var max = 0, i;
+   for(i=0;i<dataPairs.length;i++){ if(dataPairs[i].value>max) max=dataPairs[i].value; }
+   if(max===0) max=1;
+
+   var barW = (w - pad*2) / Math.max(1,dataPairs.length);
+
+   for(i=0;i<dataPairs.length;i++){
+     var p = dataPairs[i];
+     var x = pad + i*barW + 6;
+     var bw = Math.max(10, barW-12);
+     var bh = Math.round((h - pad*2) * (p.value/max));
+     var y = (h - pad) - bh;
+
+     var rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+     rect.setAttribute("x", x);
+     rect.setAttribute("y", y);
+     rect.setAttribute("width", bw);
+     rect.setAttribute("height", bh);
+     rect.setAttribute("rx","8");
+     rect.setAttribute("ry","8");
+
+     var isActive = (activeValue && p.label === activeValue);
+     rect.setAttribute("fill", isActive ? "#0a76c6" : "#0b4e88");
+     rect.setAttribute("opacity", isActive ? "1" : "0.85");
+     rect.style.cursor = "pointer";
+
+     (function(val){
+       rect.addEventListener("click", function(){ onClick(val); });
+     })(p.label);
+
+     var txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+     txt.setAttribute("x", x + bw/2);
+     txt.setAttribute("y", y - 6);
+     txt.setAttribute("text-anchor","middle");
+     txt.setAttribute("font-size","11");
+     txt.setAttribute("font-weight","900");
+     txt.setAttribute("fill","#0b1b2b");
+     txt.textContent = p.value;
+
+     var lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
+     lbl.setAttribute("x", x + bw/2);
+     lbl.setAttribute("y", h - 8);
+     lbl.setAttribute("text-anchor","middle");
+     lbl.setAttribute("font-size","10");
+     lbl.setAttribute("font-weight","800");
+     lbl.setAttribute("fill","#0b1b2b");
+     lbl.textContent = p.label;
+
+     svg.appendChild(rect);
+     svg.appendChild(txt);
+     svg.appendChild(lbl);
+   }
+
+   wrap.appendChild(svg);
+   container.appendChild(wrap);
+ }
+
+
+/* ===================== SVG HORIZONTAL BAR CHART (click-to-filter) ===================== */
+
+function renderHBarChart(container, title, dataPairs, activeValue, onClick, opts){
+  empty(container);
+
+opts = opts || {};
+var labelFont = (typeof opts.labelFont === "number") ? opts.labelFont : 12;
+var valueFont = (typeof opts.valueFont === "number") ? opts.valueFont : 12;
+var rowH      = (typeof opts.rowH === "number") ? opts.rowH : 24;
+var gap       = (typeof opts.gap === "number") ? opts.gap : 10;
+
+
+  var wrap = el("div","chart");
+  var t = el("div","chartTitle");
+  t.appendChild(el("div",null,title));
+  t.appendChild(el("div","hint","click bars to filter"));
+  wrap.appendChild(t);
+
+  // Chart sizing
+  var w = 420;                 // viewBox width
+  var topPad = 10;
+  var bottomPad = 12;
+  var leftPad = (opts.leftPad || 170);  // label area
+  var rightPad = (opts.rightPad || 40); // space for value text
+
+  var n = (dataPairs||[]).length;
+  var h = topPad + bottomPad + (n * (rowH + gap));
+  h = Math.max(120, h);
+
+  var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox","0 0 "+w+" "+h);
+  svg.style.width="100%";
+  svg.style.height = Math.min((opts.maxPxHeight || 320), h) + "px";
+
+  // Compute max
+  var max = 0, i;
+  for(i=0;i<n;i++){ if(dataPairs[i].value > max) max = dataPairs[i].value; }
+  if(max === 0) max = 1;
+
+  var barAreaW = w - leftPad - rightPad;
+
+  function trunc(s, maxLen){
+    s = String(s||"");
+    if(s.length <= maxLen) return s;
+    return s.substring(0, Math.max(0, maxLen-1)) + "…";
+  }
+
+  for(i=0;i<n;i++){
+    (function(p){
+      var y = topPad + i*(rowH + gap);
+
+      var isActive = (activeValue && p.label === activeValue);
+      var fill = isActive ? "#0a76c6" : "#0b4e88";
+      var op = isActive ? "1" : "0.85";
+
+      var bw = Math.round(barAreaW * (p.value/max));
+      if(bw < 6 && p.value > 0) bw = 6;
+
+      // Label (left)
+      var lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("x", leftPad - 8);
+      lbl.setAttribute("y", y + rowH - 5);
+      lbl.setAttribute("text-anchor","end");
+      lbl.setAttribute("font-size", String(labelFont));
+      lbl.setAttribute("font-weight","800");
+      lbl.setAttribute("fill","#0b1b2b");
+      lbl.textContent = trunc(p.label, (opts.truncLen || 26));
+
+      var titleNode = document.createElementNS("http://www.w3.org/2000/svg","title");
+      titleNode.textContent = p.label;
+      lbl.appendChild(titleNode);
+
+      // Bar
+      var rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      rect.setAttribute("x", leftPad);
+      rect.setAttribute("y", y);
+      rect.setAttribute("width", bw);
+      rect.setAttribute("height", rowH);
+      rect.setAttribute("rx","8");
+      rect.setAttribute("ry","8");
+      rect.setAttribute("fill", fill);
+      rect.setAttribute("opacity", op);
+      rect.style.cursor = "pointer";
+
+      // Value (right of bar)
+      var val = document.createElementNS("http://www.w3.org/2000/svg","text");
+      val.setAttribute("x", leftPad + bw + 6);
+      val.setAttribute("y", y + rowH - 5);
+      val.setAttribute("text-anchor","start");
+      val.setAttribute("font-size", String(valueFont));
+      val.setAttribute("font-weight","900");
+      val.setAttribute("fill","#0b1b2b");
+      val.textContent = p.value;
+
+      rect.addEventListener("click", function(){ onClick(p.label); });
+      lbl.addEventListener("click", function(){ onClick(p.label); });
+      val.addEventListener("click", function(){ onClick(p.label); });
+      lbl.style.cursor = "pointer";
+      val.style.cursor = "pointer";
+
+      svg.appendChild(lbl);
+      svg.appendChild(rect);
+      svg.appendChild(val);
+    })(dataPairs[i]);
+  }
+
+  wrap.appendChild(svg);
+  container.appendChild(wrap);
+}
+
+
+ /* ===================== SMALL UTILITIES ===================== */
+ function uniqSorted(arr){
+   var m = {}, out = [], i, v;
+   for(i=0;i<arr.length;i++){
+     v = arr[i];
+     if(v === null || v === undefined || v === "") continue;
+     v = String(v);
+     if(!m[v]){ m[v]=1; out.push(v); }
+   }
+   out.sort(function(a,b){
+     a=a.toLowerCase(); b=b.toLowerCase();
+     return a<b ? -1 : (a>b ? 1 : 0);
+   });
+   return out;
+ }
+ function toggleArr(arr, v){
+   var i = arr.indexOf(v);
+   if(i>-1) arr.splice(i,1);
+   else arr.push(v);
+ }
+
+ function groupCount(rows, field){
+   var m = {}, out = [], i, v;
+   for(i=0;i<rows.length;i++){
+     v = rows[i][field];
+     if(v && typeof v === "object" && v.Title) v = v.Title;
+     if(v === null || v === undefined || v === "") v = "(Blank)";
+     v = String(v);
+     m[v] = (m[v]||0) + 1;
+   }
+   for(var k in m){ if(m.hasOwnProperty(k)) out.push({label:k, value:m[k]}); }
+   out.sort(function(a,b){ return b.value - a.value; });
+   return out;
+ }
+
+ function matchesSearch(item, fields, q){
+   if(!q) return true;
+   q = q.toLowerCase();
+   for(var i=0;i<fields.length;i++){
+     var v = item[fields[i]];
+     if(v === null || v === undefined) continue;
+     v = String(v).toLowerCase();
+     if(v.indexOf(q) > -1) return true;
+   }
+   return false;
+ }
+
+ function kpi(label, value, sub){
+   var k = el("div","kpi");
+   k.appendChild(el("div","k",label));
+   k.appendChild(el("div","v",String(value)));
+   k.appendChild(el("div","s",sub||""));
+   return k;
+ }
+
+ function kv(k, v){
+   var d = el("div","kv");
+   d.appendChild(el("div","k",k));
+   d.appendChild(el("div","v",(v===null||v===undefined) ? "" : String(v)));
+   return d;
+ }
+
+ function wrapBox(child){
+   var b = el("div","box");
+   b.appendChild(child);
+   return b;
+ }
+
+ function tdTxt(v){
+   var td = el("td");
+   td.textContent = (v===null||v===undefined) ? "" : String(v);
+   return td;
+ }
+ function tdHtml(html){
+   var td = el("td");
+   td.innerHTML = html;
+   return td;
+ }
+ function tdLink(txt, onClick){
+   var td = el("td");
+   var a = el("a");
+   a.href="#";
+   a.textContent = txt || "";
+   on(a,"click",function(e){ e.preventDefault(); onClick(); });
+   td.appendChild(a);
+   return td;
+ }
+
+ function inactivityBadge(days){
+   var cls = "badge good";
+   if(days >= CONFIG.INACTIVITY_BAD) cls="badge bad";
+   else if(days >= CONFIG.INACTIVITY_WARN) cls="badge warn";
+   return '<span class="'+cls+'">'+esc(String(days))+'</span>';
+ }
+
+ /* ===================== APP STATE ===================== */
+ var STATE = {
+   tab: "FOIA",
+   loading: false,
+   data: { foia:[], time:[], poc:[], rm:[], ri:[], oi:[] },
+   filters: {
+     FOIA:   { search:"", year:"All", office:[], status:[], opr:[], reqType:[], inactivity:"All", chartFilter:null },
+     OI:     { search:"", year:"All", sitting:[], status:[], assigned:[], chartFilter:null },
+     RECORDS:{ search:"", unit:[], role:[], appt:[], afrims:[], erm:[], chartFilter:null }
+   },
+   table: {
+     FOIA:   { sortKey:"_InactivityDays", sortDir:"desc", page:1, selectedId:null },
+     OI:     { sortKey:"DueDate", sortDir:"asc", page:1, selectedId:null },
+     RECORDS:{ sortKey:"Risk", sortDir:"desc", page:1, selectedId:null }
+   }
+ };
+
+ /* ===================== BUILD SHELL ===================== */
+ var root = document.getElementById("docSsmDashRoot");
+ if(!root) return;
+
+ var shell = el("div","docdash");
+
+ var topbar = el("div","docdash-topbar");
+ var brand = el("div","docdash-brand");
+ brand.innerHTML = '<span class="u-tag">(U)</span><span class="title">DOC SSM Dashboard</span>';
+
+ var tabs = el("div","docdash-tabs");
+ function tabBtn(key, label){
+   var b = el("button","tabbtn",label);
+   b.setAttribute("data-tab", key);
+   on(b,"click",function(){
+     if(STATE.tab === key) return;
+     STATE.tab = key;
+     STATE.filters[key].chartFilter = null;
+     STATE.table[key].page = 1;
+     STATE.table[key].selectedId = null;
+     render();
+   });
+   return b;
+ }
+ tabs.appendChild(tabBtn("FOIA","FOIA"));
+ tabs.appendChild(tabBtn("OI","Operating Instructions"));
+ tabs.appendChild(tabBtn("RECORDS","Records"));
+
+ var tools = el("div","docdash-tools");
+ var refreshBtn = el("button","btn btn-ghost","Refresh Data");
+ var statusPill = el("div","statuspill","Ready");
+ tools.appendChild(refreshBtn);
+ tools.appendChild(statusPill);
+
+ topbar.appendChild(brand);
+ topbar.appendChild(tabs);
+ topbar.appendChild(tools);
+
+ var body = el("div","docdash-body");
+ var left = el("div","docdash-left");
+ var right = el("div","docdash-right");
+ body.appendChild(left);
+ body.appendChild(right);
+
+ shell.appendChild(topbar);
+ shell.appendChild(body);
+ root.appendChild(shell);
+
+// Debug proof the UI actually built
+statusPill.textContent = "Initialized (UI built)";
+
+ function setLoading(isLoading, msg){
+   STATE.loading = isLoading;
+   if(isLoading){
+     statusPill.innerHTML = '<span class="spinner"></span>' + esc(msg || "Loading...");
+   } else {
+     statusPill.textContent = msg || "Ready";
+   }
+ }
+
+
+
+ /* ===================== TAB RENDER ROUTER ===================== */
+
+function _daysSince(dateStr){
+  if(!dateStr) return 0;
+  var d = new Date(dateStr);
+  if(isNaN(d.getTime())) return 0;
+  var now = new Date();
+  var ms = now.getTime() - d.getTime();
+  var days = Math.floor(ms / (1000*60*60*24));
+  return (days < 0) ? 0 : days;
+}
+
+function _rerenderPreserveFocusById(id, selStart, selEnd){
+  render();
+  setTimeout(function(){
+    try{
+      var elx = document.getElementById(id);
+      if(elx){
+        elx.focus();
+        if(typeof selStart === "number" && typeof selEnd === "number" && elx.setSelectionRange){
+          elx.setSelectionRange(selStart, selEnd);
+        }
+      }
+    } catch(e){}
+  }, 0);
+}
+
+ function render(){
+   // activate tab UI
+   var btns = tabs.querySelectorAll(".tabbtn");
+   for(var i=0;i<btns.length;i++){
+     var k = btns[i].getAttribute("data-tab");
+     if(k === STATE.tab) btns[i].classList.add("active");
+     else btns[i].classList.remove("active");
+   }
+
+   empty(left);
+   empty(right);
+
+   if(STATE.tab === "FOIA") renderFOIA();
+   else if(STATE.tab === "OI") renderOIS();
+   else renderRECORDS();
+ }
+
+/* ============================================================
+   SECTION 1/3 — FOIAs MODULE (UPDATED)
+   Changes implemented:
+   - RIGHT side split into TWO sections:
+       (1) Active Cases  = NOT closed/transferred
+       (2) Closed/Transferred Cases
+   - Filters + Search apply to BOTH sections (split happens AFTER filtering)
+   - KPIs reflect ACTIVE ONLY (plus a single count for Closed/Transferred)
+   - Closed/Transferred determination uses Action Taken ONLY:
+       LastActionTaken === "Case Closed" OR "Transferred" (case-insensitive)
+   - DISABLED:
+       - “Open FOIA Library Link” button (removed)
+       - “Time Spent (Hours) by Next Office” chart (removed)
+   ============================================================ */
+
+/* ===================== FOIA: ENTRY ===================== */ 
+function renderFOIA(){
+  // Ensure data is loaded once
+  if(!STATE.data.foia || !STATE.data.foia.length){
+    // If currently loading, show placeholder
+    if(STATE.loading){
+      left.appendChild(_foiaPanelMsg("FOIA", "Loading FOIA data..."));
+      return;
+    }
+    _foiaLoad().then(function(){
+      render();
+    }).catch(function(err){
+      console.error(err);
+      left.appendChild(_foiaPanelMsg("FOIA", "Load failed: " + (err && err.message ? err.message : err)));
+    });
+    left.appendChild(_foiaPanelMsg("FOIA", "Loading FOIA data..."));
+    return;
+  }
+
+  // Ensure FOIA table state exists + add split paging defaults
+  if(!STATE.table) STATE.table = {};
+  if(!STATE.table.FOIA){
+    STATE.table.FOIA = {
+      page: 1,                // legacy (not used for split)
+      sortKey: "DaysSinceModified",
+      sortDir: "desc",
+      selectedId: null,
+      activePage: 1,
+      closedPage: 1
+    };
+  } else {
+    if(typeof STATE.table.FOIA.activePage !== "number") STATE.table.FOIA.activePage = 1;
+    if(typeof STATE.table.FOIA.closedPage !== "number") STATE.table.FOIA.closedPage = 1;
+  }
+
+  var raw = STATE.data.foia.slice(0);
+  var filtered = _foiaApplyFilters(raw);
+
+  // Left side (KPIs + analytics + filters at bottom)
+  left.appendChild(_foiaRenderKpis(raw, filtered));   // ACTIVE-only KPIs (+ closed count)
+  left.appendChild(_foiaRenderCharts(filtered));      // analytics
+  left.appendChild(_foiaRenderFilters(raw, filtered)); // filters LAST
+
+
+  // Right side (Active table + Closed/Transferred table + Details)
+  right.appendChild(_foiaRenderWorkQueueSplit(filtered));
+}
+
+
+/* ===================== FOIA: CLOSED/TRANSFERRED CHECK (ACTION TAKEN ONLY) ===================== */ 
+function _foiaIsClosedOrTransferred(r){
+  var at = String((r && r.LastActionTaken) ? r.LastActionTaken : "").toLowerCase().trim();
+  return (at === "case closed" || at === "transferred"); }
+
+
+/* ===================== FOIA: DATA LOAD ===================== */ 
+function _foiaLoad(){
+  setLoading(true, "Loading FOIA lists...");
+
+  // These must be visible to later .then() blocks
+  var iRequest = null, iTaskNotes = null, iNewest = null, iTech = null, iCurrAO = null, iSpecPOC = null, iLibrary = null;
+
+  function safe(internalName){ return internalName ? internalName : null; }
+
+  // Build FOIA select/expand after we learn internal names
+  function buildFoiaQueryParts(){
+    var foiaSelectParts = [
+      "Id","Title","Created","Modified",
+      "StartDate","ActionDate","DaysSinceModified",
+      "CurrentStatus","PositionStatus","LastActionTaken",
+      "RequestType","OPR"
+    ];
+
+    // Multi-line text fields (internal names)
+    if(safe(iRequest))   foiaSelectParts.push(iRequest);
+    if(safe(iTaskNotes)) foiaSelectParts.push(iTaskNotes);
+    if(safe(iNewest))    foiaSelectParts.push(iNewest);
+
+    // Hyperlink field (still loaded for display if you want, but button is removed)
+    if(safe(iLibrary))   foiaSelectParts.push(iLibrary);
+
+    // Lookup / Person fields
+    var foiaExpandParts = [];
+
+    if(safe(iCurrAO)){
+      foiaSelectParts.push(iCurrAO + "/Title");
+      foiaExpandParts.push(iCurrAO);
+    }
+    if(safe(iTech)){
+      foiaSelectParts.push(iTech + "/Title");
+      foiaExpandParts.push(iTech);
+    }
+    if(safe(iSpecPOC)){
+      foiaSelectParts.push(iSpecPOC + "/Title");
+      foiaExpandParts.push(iSpecPOC);
+    }
+
+    // Author/Editor (optional but safe)
+    foiaSelectParts.push("Author/Title","Editor/Title");
+    foiaExpandParts.push("Author","Editor");
+
+    return {
+      select: foiaSelectParts.join(","),
+      expand: foiaExpandParts.join(",")
+    };
+  }
+
+  // Time logs query (field-map driven + safe)
+  var tFOIACase = null, tHours = null, tDate = null, tActionTaken = null, tNextAction = null, tNextOffice = null, tLastActionDate = null, tOPR = null, tPOC = null;
+
+  function buildTimeQueryParts(){
+    var sel = ["Id","Title","Modified","Created"];
+    var exp = [];
+
+    // Lookup fields -> /Title + expand
+    if(tFOIACase){ sel.push(tFOIACase + "/Title"); exp.push(tFOIACase); }
+    if(tOPR){      sel.push(tOPR + "/Title");      exp.push(tOPR); }
+    if(tPOC){      sel.push(tPOC + "/Title");      exp.push(tPOC); }
+
+    // Normal fields
+    if(tHours) sel.push(tHours);
+    if(tDate) sel.push(tDate);
+    if(tActionTaken) sel.push(tActionTaken);
+    if(tNextAction) sel.push(tNextAction);
+    if(tNextOffice) sel.push(tNextOffice);
+    if(tLastActionDate) sel.push(tLastActionDate);
+
+    return { select: sel.join(","), expand: exp.join(",") };
+  }
+
+  // POC query
+  var pocSelect = ["Id","Title","OfficePOC/Title","Modified","Created"].join(",");
+  var pocsExpand = "OfficePOC";
+
+  return spGetFieldMap(CONFIG.LISTS.FOIA)
+    .then(function(F){
+      // Titles MUST match what users see on the column settings page
+      iRequest   = F["Request Description"];
+      iTaskNotes = F["All Notes"];
+      iNewest    = F["Newest Comment"];
+      iTech      = F["Technician Assigned"];
+      iCurrAO    = F["Current Action Office"];
+      iSpecPOC   = F["SpecialPOC"];
+      iLibrary   = F["FOIA Library"];
+
+      var q = buildFoiaQueryParts();
+      return spGetAll(CONFIG.LISTS.FOIA, q.select, q.expand, null, "Modified desc", CONFIG.TOP);
+    })
+    .then(function(foiaRows){
+      foiaRows = foiaRows || [];
+
+      for(var i=0;i<foiaRows.length;i++){
+        var r = foiaRows[i];
+
+        // Copy mapped fields into the names used everywhere else
+        if(iRequest && r[iRequest] != null)     r.Request = r[iRequest];
+        if(iTaskNotes && r[iTaskNotes] != null) r.TaskNotes = r[iTaskNotes];
+        if(iNewest && r[iNewest] != null)       r.NewestComment = r[iNewest];
+        if(iLibrary && r[iLibrary] != null)     r.FOIALibrary = r[iLibrary];
+
+        // Dynamic inactivity
+        r._InactivityDays = _daysSince(r.Modified);
+
+        // Keep legacy column populated for table/detail that still read DaysSinceModified
+        r.DaysSinceModified = r._InactivityDays;
+      }
+
+      STATE.data.foia = foiaRows;
+
+      // Default selected row
+      if(!STATE.table.FOIA || !STATE.table.FOIA.selectedId){
+        if(!STATE.table.FOIA) STATE.table.FOIA = {};
+        if(STATE.data.foia.length) STATE.table.FOIA.selectedId = STATE.data.foia[0].Id;
+      }
+
+      return spGetFieldMap(CONFIG.LISTS.TIME).then(function(T){
+        // These titles MUST match what users see in the TIME list column settings.
+        tFOIACase       = T["FOIA Case"] || T["FOIACase"];
+        tHours          = T["Time Spent (Hours)"] || T["TimeSpent (Hours)"] || T["Time Spent"];
+        tDate           = T["Date"];
+        tActionTaken    = T["Action Taken"] || T["ActionTaken"];
+        tNextAction     = T["Next Action"] || T["NextAction"];
+        tNextOffice     = T["Next Office"] || T["NextOffice"];
+        tLastActionDate = T["Date of last action"] || T["Date of Last Action"] || T["Date_x0020_of_x0020_last_x0020_a"];
+        tOPR            = T["OPR"];
+        tPOC            = T["POC"];
+
+        var tq = buildTimeQueryParts();
+        var order = (tDate ? (tDate + " desc") : "Modified desc");
+
+        return spGetAll(CONFIG.LISTS.TIME, tq.select, tq.expand, null, order, CONFIG.TOP);
+      });
+    })
+    .then(function(timeRows){
+      timeRows = timeRows || [];
+
+      for(var t=0;t<timeRows.length;t++){
+        var tr = timeRows[t];
+
+        // Hours
+        var rawH = (tHours && tr[tHours] != null) ? tr[tHours] : tr.TimeSpent_x0028_Hours_x0029_;
+        tr.TimeSpentHours = toNum(rawH);
+
+        // Next Office
+        var rawO = (tNextOffice && tr[tNextOffice] != null) ? tr[tNextOffice] : tr.NextOffice;
+        tr.NextOfficeName = (rawO && rawO.Title) ? rawO.Title : rawO;
+
+        // Optional log date
+        if(tDate && tr[tDate] != null) tr._LogDate = tr[tDate];
+      }
+
+      STATE.data.time = timeRows;
+
+      return spGetAll(CONFIG.LISTS.POC, pocSelect, pocsExpand, null, "Title asc", CONFIG.TOP);
+    })
+    .then(function(pocRows){
+      STATE.data.poc = pocRows || [];
+      setLoading(false, "FOIA loaded • Cases "+STATE.data.foia.length+" • Time logs "+(STATE.data.time||[]).length);
+      return true;
+    })
+    .catch(function(err){
+      setLoading(false, "FOIA load failed");
+      throw err;
+    });
+}
+
+
+/* ===================== FOIA: FILTERING ===================== */ 
+function _foiaApplyFilters(raw){
+  var f = STATE.filters.FOIA;
+  var rows = raw.slice(0);
+
+  // Year filter (Requested date = StartDate)
+  if(f.year && f.year !== "All"){
+    rows = rows.filter(function(r){ return yearOf(r.StartDate) === f.year; });
+  }
+
+  // Multi-select filters
+  if(f.office && f.office.length){
+    rows = rows.filter(function(r){ return f.office.indexOf(r.PositionStatus) > -1; });
+  }
+  if(f.status && f.status.length){
+    rows = rows.filter(function(r){ return f.status.indexOf(r.CurrentStatus) > -1; });
+  }
+  if(f.opr && f.opr.length){
+    rows = rows.filter(function(r){ return f.opr.indexOf(r.OPR) > -1; });
+  }
+  if(f.reqType && f.reqType.length){
+    rows = rows.filter(function(r){ return f.reqType.indexOf(r.RequestType) > -1; });
+  }
+
+  // Inactivity thresholds (dynamic: today - Modified)
+  if(f.inactivity === ">=Warn"){
+    rows = rows.filter(function(r){ return toNum(r._InactivityDays) >= CONFIG.INACTIVITY_WARN; });
+  } else if(f.inactivity === ">=Bad"){
+    rows = rows.filter(function(r){ return toNum(r._InactivityDays) >= CONFIG.INACTIVITY_BAD; });
+  }
+
+  // Search across key strings
+  rows = rows.filter(function(r){
+    return matchesSearch(r, [
+      "Title","Request","TaskNotes","NewestComment","LastActionTaken",
+      "CurrentStatus","PositionStatus","RequestType","OPR"
+    ], f.search);
+  });
+
+  // Chart drill filter (single)
+  if(f.chartFilter && f.chartFilter.field && f.chartFilter.value){
+    rows = rows.filter(function(r){
+      return String(r[f.chartFilter.field] || "") === f.chartFilter.value;
+    });
+  }
+
+  return rows;
+}
+
+
+/* ===================== FOIA: FILTER PANEL UI ===================== */ function _foiaRenderFilters(raw, filtered){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Filters (FOIA)"));
+
+  var clear = el("button","btn btn-ghost","Clear");
+  clear.style.padding="6px 10px";
+  on(clear,"click",function(){
+    STATE.filters.FOIA = {
+      search:"", year:"All", office:[], status:[], opr:[], reqType:[], inactivity:"All", chartFilter:null
+    };
+    if(!STATE.table.FOIA) STATE.table.FOIA = {};
+    STATE.table.FOIA.activePage = 1;
+    STATE.table.FOIA.closedPage = 1;
+    STATE.table.FOIA.selectedId = null;
+    render();
+  });
+  h.appendChild(clear);
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  var grid = el("div","filterGrid");
+
+  // Search
+  var r1 = el("div","frow");
+  r1.appendChild(el("label",null,"Search"));
+  var inp = el("input");
+  inp.type="text";
+  inp.id = "foiaSearch";
+  inp.placeholder="Case #, notes, request, action needed.";
+  inp.value = STATE.filters.FOIA.search;
+  on(inp,"input",function(){
+    var s = inp.selectionStart, e = inp.selectionEnd;
+    STATE.filters.FOIA.search = inp.value;
+    if(!STATE.table.FOIA) STATE.table.FOIA = {};
+    STATE.table.FOIA.activePage = 1;
+    STATE.table.FOIA.closedPage = 1;
+    _rerenderPreserveFocusById("foiaSearch", s, e);
+  });
+  r1.appendChild(inp);
+  grid.appendChild(r1);
+
+  // Year dropdown from StartDate
+  var years = uniqSorted(raw.map(function(x){ return yearOf(x.StartDate); }).filter(function(y){ return !!y; }));
+  years.unshift("All");
+
+  var r2 = el("div","frow");
+  r2.appendChild(el("label",null,"Requested Year"));
+  var sel = el("select");
+  for(var i=0;i<years.length;i++){
+    var opt = el("option");
+    opt.value = years[i];
+    opt.textContent = years[i];
+    if(years[i] === STATE.filters.FOIA.year) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  on(sel,"change",function(){
+    STATE.filters.FOIA.year = sel.value;
+    if(!STATE.table.FOIA) STATE.table.FOIA = {};
+    STATE.table.FOIA.activePage = 1;
+    STATE.table.FOIA.closedPage = 1;
+    render();
+  });
+  r2.appendChild(sel);
+  grid.appendChild(r2);
+
+  // Chips (multi-select)
+  grid.appendChild(_foiaChipMulti("Action Office (Sitting With)", uniqSorted(raw.map(function(x){return x.PositionStatus;})), STATE.filters.FOIA.office, function(v){
+    toggleArr(STATE.filters.FOIA.office, v); STATE.table.FOIA.activePage=1; STATE.table.FOIA.closedPage=1; render();
+  }));
+  grid.appendChild(_foiaChipMulti("Action Needed", uniqSorted(raw.map(function(x){return x.CurrentStatus;})), STATE.filters.FOIA.status, function(v){
+    toggleArr(STATE.filters.FOIA.status, v); STATE.table.FOIA.activePage=1; STATE.table.FOIA.closedPage=1; render();
+  }));
+  grid.appendChild(_foiaChipMulti("OPR", uniqSorted(raw.map(function(x){return x.OPR;})), STATE.filters.FOIA.opr, function(v){
+    toggleArr(STATE.filters.FOIA.opr, v); STATE.table.FOIA.activePage=1; STATE.table.FOIA.closedPage=1; render();
+  }));
+  grid.appendChild(_foiaChipMulti("Request Type", uniqSorted(raw.map(function(x){return x.RequestType;})), STATE.filters.FOIA.reqType, function(v){
+    toggleArr(STATE.filters.FOIA.reqType, v); STATE.table.FOIA.activePage=1; STATE.table.FOIA.closedPage=1; render();
+  }));
+
+  // Inactivity selector
+  var r3 = el("div","frow");
+  r3.appendChild(el("label",null,"Inactivity (Days since last Modified)"));
+  var s2 = el("select");
+  var opts2 = [
+    {v:"All", t:"All"},
+    {v:">=Warn", t:">= "+CONFIG.INACTIVITY_WARN+" days"},
+    {v:">=Bad",  t:">= "+CONFIG.INACTIVITY_BAD+" days"}
+  ];
+  for(i=0;i<opts2.length;i++){
+    var o2 = el("option");
+    o2.value = opts2[i].v;
+    o2.textContent = opts2[i].t;
+    if(opts2[i].v === STATE.filters.FOIA.inactivity) o2.selected = true;
+    s2.appendChild(o2);
+  }
+  on(s2,"change",function(){
+    STATE.filters.FOIA.inactivity = s2.value;
+    STATE.table.FOIA.activePage=1;
+    STATE.table.FOIA.closedPage=1;
+    render();
+  });
+  r3.appendChild(s2);
+  grid.appendChild(r3);
+
+  b.appendChild(grid);
+  b.appendChild(el("div","muted","Showing "+filtered.length+" of "+raw.length));
+  p.appendChild(b);
+  return p;
+}
+
+function _foiaChipMulti(label, values, selectedArr, onToggle){
+  var r = el("div","frow");
+  r.appendChild(el("label",null,label));
+  var box = el("div","chipbox");
+
+  values = (values||[]).filter(function(v){ return v !== null && v !== undefined && String(v).trim() !== ""; });
+  values = uniqSorted(values.map(function(v){ return String(v); }));
+
+  if(!values.length){
+    box.appendChild(el("div","muted","No values"));
+  } else {
+    for(var i=0;i<values.length;i++){
+      var v = values[i];
+      var c = el("div","chip",v);
+      if(selectedArr.indexOf(v)>-1) c.classList.add("on");
+      (function(val,chip){
+        on(chip,"click",function(){ onToggle(val); });
+      })(v,c);
+      box.appendChild(c);
+    }
+  }
+  r.appendChild(box);
+  return r;
+}
+
+
+/* ===================== FOIA: KPI PANEL (ACTIVE ONLY + CLOSED COUNT) ===================== */ 
+function _foiaRenderKpis(raw, filtered){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"FOIA KPIs"));
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+
+  var rawSplit = _foiaSplitRows(raw);
+  var filtSplit = _foiaSplitRows(filtered);
+
+  var row = el("div","kpiRow");
+  row.appendChild(kpi("Active Cases", filtSplit.active.length, "Total Active: "+rawSplit.active.length));
+  row.appendChild(kpi("Closed/Transferred", filtSplit.closed.length, "Total Closed/Transferred: "+rawSplit.closed.length));
+  row.appendChild(kpi("Cases Shown", filtSplit.total, "Out of "+rawSplit.total));
+  b.appendChild(row);
+
+  //b.appendChild(el("div","footnote","KPIs reflect ACTIVE only (Closed/Transferred shown as a single count)."));
+  p.appendChild(b);
+  return p;
+}
+
+function _foiaSplitRows(rows){
+  var active = [], closed = [], i;
+  for(i=0;i<(rows||[]).length;i++){
+    if(_foiaIsClosedOrTransferred(rows[i])) closed.push(rows[i]);
+    else active.push(rows[i]);
+  }
+  return { active: active, closed: closed, total: (rows||[]).length }; }
+
+
+/* ===================== FOIA: CHARTS PANEL (TIME CHART REMOVED) ===================== */ function _foiaRenderCharts(filtered){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"FOIA Analytics"));
+
+  var clear = el("button","btn btn-ghost","Clear Chart Filter");
+  clear.style.padding="6px 10px";
+  on(clear,"click",function(){
+    STATE.filters.FOIA.chartFilter = null;
+    if(STATE.table.FOIA){ STATE.table.FOIA.activePage = 1; STATE.table.FOIA.closedPage = 1; }
+    render();
+  });
+  h.appendChild(clear);
+
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  var wrap = el("div","chartWrap");
+
+// Chart 1: Cases by Action Office (ACTIVE ONLY) (HORIZONTAL)
+var splitForChart = _foiaSplitRows(filtered);
+var activeForChart = splitForChart.active || [];
+var byOffice = groupCount(activeForChart, "PositionStatus").slice(0,10);
+
+var c1 = el("div",null);
+renderHBarChart(
+  c1,
+  "Cases by Action Office (Active Only)",
+  byOffice,
+  (STATE.filters.FOIA.chartFilter && STATE.filters.FOIA.chartFilter.field==="PositionStatus") ? STATE.filters.FOIA.chartFilter.value : null,
+  function(val){
+    var cf = STATE.filters.FOIA.chartFilter;
+    if(cf && cf.field==="PositionStatus" && cf.value===val) STATE.filters.FOIA.chartFilter=null;
+    else STATE.filters.FOIA.chartFilter={field:"PositionStatus", value:val};
+    if(STATE.table.FOIA){ STATE.table.FOIA.activePage = 1; STATE.table.FOIA.closedPage = 1; }
+    render();
+  },
+  {
+    labelFont: 18,
+    valueFont: 16,
+    rowH: 30,
+    gap: 12,
+    leftPad: 210,
+    truncLen: 32,
+    maxPxHeight: 420
+  }
+);
+wrap.appendChild(c1);
+
+
+
+ // Chart 2: Cases by Request Type (ACTIVE ONLY)
+var splitForTypeChart = _foiaSplitRows(filtered);
+var activeForTypeChart = splitForTypeChart.active || [];
+var byType = groupCount(activeForTypeChart, "RequestType").slice(0,8);
+
+var c2 = el("div",null);
+renderBarChart(
+  c2,
+  "Cases by Request Type (Active Only)",
+  byType,
+  (STATE.filters.FOIA.chartFilter && STATE.filters.FOIA.chartFilter.field==="RequestType") ? STATE.filters.FOIA.chartFilter.value : null,
+  function(val){
+    var cf2 = STATE.filters.FOIA.chartFilter;
+    if(cf2 && cf2.field==="RequestType" && cf2.value===val) STATE.filters.FOIA.chartFilter=null;
+    else STATE.filters.FOIA.chartFilter={field:"RequestType", value:val};
+    if(STATE.table.FOIA){ STATE.table.FOIA.activePage = 1; STATE.table.FOIA.closedPage = 1; }
+    render();
+  }
+);
+wrap.appendChild(c2);
+
+
+  b.appendChild(wrap);
+  p.appendChild(b);
+  return p;
+}
+
+
+/* ===================== FOIA: RIGHT SIDE — SPLIT TABLES + SHARED DETAILS ===================== */ 
+function _foiaRenderWorkQueueSplit(filtered){
+  var split = _foiaSplitRows(filtered);
+  var activeRows = split.active;
+  var closedRows = split.closed;
+
+  // Layout:
+  // Left column: Active table (top) + Closed table (bottom)
+  // Right column: Details panel spanning both rows
+  var container = el("div","foiaSplitWrap");
+  container.style.display = "grid";
+  container.style.gridTemplateColumns = "1fr 360px";
+  container.style.gridTemplateRows = "auto auto";
+  container.style.gap = "10px";
+
+  var leftCol = el("div","foiaSplitLeft");
+  leftCol.style.display = "grid";
+  leftCol.style.gridTemplateRows = "auto auto";
+  leftCol.style.gap = "10px";
+
+  leftCol.appendChild(_foiaRenderTablePanel("FOIA Work Queue — Active Cases", activeRows, "active"));
+  leftCol.appendChild(_foiaRenderTablePanel("FOIA Work Queue — Closed / Transferred", closedRows, "closed"));
+
+  var detailPanel = el("div","panel");
+  detailPanel.style.gridRow = "1 / span 2";
+  detailPanel.style.gridColumn = "2 / 3";
+
+  var h2 = el("div","panel-h");
+  h2.appendChild(el("div",null,"Details"));
+  detailPanel.appendChild(h2);
+
+  var b2 = el("div","panel-b");
+  b2.appendChild(_foiaRenderDetail(STATE.table.FOIA.selectedId));
+  detailPanel.appendChild(b2);
+
+  container.appendChild(leftCol);
+  container.appendChild(detailPanel);
+  return container;
+}
+
+
+/* ===================== FOIA: TABLE PANEL (ACTIVE or CLOSED) ===================== */ function _foiaRenderTablePanel(title, rowsIn, which){
+  var pTable = el("div","panel");
+  var h1 = el("div","panel-h");
+  h1.appendChild(el("div",null,title));
+  pTable.appendChild(h1);
+
+  var b1 = el("div","panel-b");
+  var table = el("table","tbl");
+
+  var cols = [
+    {k:"Title", t:"Case Number"},
+    {k:"LastActionTaken", t:"Action Taken"},
+    {k:"DaysSinceModified", t:"Inactivity"},
+    {k:"CurrentStatus", t:"Action Needed"},
+    {k:"PositionStatus", t:"Sitting With"},
+    {k:"StartDate", t:"Requested"}
+  ];
+
+  var st = STATE.table.FOIA;
+
+  function getPage(){
+    return (which === "closed") ? st.closedPage : st.activePage;
+  }
+  function setPage(n){
+    if(which === "closed") st.closedPage = n;
+    else st.activePage = n;
+  }
+
+  function sortRows(rows){
+    var key = st.sortKey, dir = st.sortDir;
+    rows.sort(function(a,b){
+      var va = a[key], vb = b[key];
+
+      if(key === "StartDate" || key === "ActionDate"){
+        va = new Date(va||0).getTime();
+        vb = new Date(vb||0).getTime();
+      } else if(key === "DaysSinceModified"){
+        va = toNum(va); vb = toNum(vb);
+      } else {
+        if(typeof va === "string") va = va.toLowerCase();
+        if(typeof vb === "string") vb = vb.toLowerCase();
+      }
+
+      if(va < vb) return dir==="asc" ? -1 : 1;
+      if(va > vb) return dir==="asc" ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }
+
+  var rows = sortRows((rowsIn||[]).slice(0));
+  var total = rows.length;
+  var pageSize = CONFIG.TABLE_PAGE_SIZE;
+  var pages = Math.max(1, Math.ceil(total / pageSize));
+
+  var page = getPage();
+  if(page > pages) page = pages;
+  if(page < 1) page = 1;
+  setPage(page);
+
+  var start = (page-1) * pageSize;
+  var pageRows = rows.slice(start, start+pageSize);
+
+  // header
+  var thead = el("thead");
+  var trh = el("tr");
+  for(var i=0;i<cols.length;i++){
+    (function(c){
+      var th = el("th",null,c.t);
+      if(st.sortKey === c.k) th.textContent = c.t + (st.sortDir==="asc" ? " ▲" : " ▼");
+      on(th,"click",function(){
+        if(st.sortKey === c.k) st.sortDir = (st.sortDir==="asc" ? "desc" : "asc");
+        else { st.sortKey = c.k; st.sortDir = "asc"; }
+        render();
+      });
+      trh.appendChild(th);
+    })(cols[i]);
+  }
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  // body
+  var tbody = el("tbody");
+  for(i=0;i<pageRows.length;i++){
+    (function(r){
+      var tr = el("tr");
+      if(st.selectedId === r.Id) tr.classList.add("rowSel");
+      on(tr,"click",function(){
+        st.selectedId = r.Id;
+        render();
+      });
+
+      tr.appendChild(tdLink(r.Title, function(){ st.selectedId = r.Id; render(); }));
+      tr.appendChild(tdTxt(r.LastActionTaken));
+      tr.appendChild(tdHtml(inactivityBadge(toNum(r.DaysSinceModified))));
+      tr.appendChild(tdTxt(r.CurrentStatus));
+      tr.appendChild(tdTxt(r.PositionStatus));
+      tr.appendChild(tdTxt(fmtDate(r.StartDate)));
+
+      tbody.appendChild(tr);
+    })(pageRows[i]);
+  }
+  table.appendChild(tbody);
+
+  b1.appendChild(table);
+
+  // pager
+  var pager = el("div","pager");
+  var prev = el("button","pbtn","Prev");
+  prev.disabled = (page <= 1);
+  on(prev,"click",function(){ setPage(getPage()-1); render(); });
+
+  var next = el("button","pbtn","Next");
+  next.disabled = (page >= pages);
+  on(next,"click",function(){ setPage(getPage()+1); render(); });
+
+  pager.appendChild(el("div","muted","Page "+page+" / "+pages+" • "+total+" rows"));
+  pager.appendChild(prev);
+  pager.appendChild(next);
+  b1.appendChild(pager);
+
+  pTable.appendChild(b1);
+  return pTable;
+}
+
+
+/* ===================== FOIA: DETAIL (LIBRARY BUTTON REMOVED) ===================== */ function _foiaRenderDetail(id){
+  var box = el("div","detail");
+  if(!id){
+    box.appendChild(el("div","box muted","Select a case to see details."));
+    return box;
+  }
+
+  var item = null;
+  var rows = STATE.data.foia || [];
+  for(var i=0;i<rows.length;i++){
+    if(rows[i].Id === id){ item = rows[i]; break; }
+  }
+  if(!item){
+    box.appendChild(el("div","box muted","Selected item not found (filters may have changed)."));
+    return box;
+  }
+
+  // Title
+  var titleBox = el("div","box");
+  titleBox.appendChild(el("h3",null,item.Title || "(No Case Number)"));
+  titleBox.appendChild(el("div","muted","Requested: "+fmtDateTime(item.StartDate)+" • Last action date: "+fmtDateTime(item.ActionDate)));
+  box.appendChild(titleBox);
+
+  // Meta
+  var meta = el("div","meta");
+  meta.appendChild(kv("Sitting With", item.PositionStatus));
+  meta.appendChild(kv("Action Needed", item.CurrentStatus));
+  meta.appendChild(kv("Action Taken", item.LastActionTaken));
+  //meta.appendChild(kv("Closed/Transferred (by Action Taken)", _foiaIsClosedOrTransferred(item) ? "Yes" : "No"));
+  meta.appendChild(kv("Inactivity (days)", String(toNum(item.DaysSinceModified))));
+  meta.appendChild(kv("Request Type", item.RequestType));
+  meta.appendChild(kv("OPR", item.OPR));
+
+  //meta.appendChild(kv("Current Action Office", item.CurrentActionOffice && item.CurrentActionOffice.Title ? item.CurrentActionOffice.Title : ""));
+  meta.appendChild(kv("Technician Assigned", item.Technician_x0020_Assigned_ && item.Technician_x0020_Assigned_.Title ? item.Technician_x0020_Assigned_.Title : ""));
+  meta.appendChild(kv("Special POC", item.SpecialPOC && item.SpecialPOC.Title ? item.SpecialPOC.Title : ""));
+
+  box.appendChild(wrapBox(meta));
+
+  // Request description
+  var req = el("div","box");
+  req.appendChild(el("div","k","Request"));
+  var pre1 = el("pre");
+  pre1.textContent = item.Request || "";
+  req.appendChild(pre1);
+  box.appendChild(req);
+
+  // Notes
+  var notes = el("div","box");
+  notes.appendChild(el("div","k","Notes / Newest Comment"));
+  var pre2 = el("pre");
+  pre2.textContent = (item.NewestComment ? ("Newest:\n"+item.NewestComment+"\n\n") : "") + (item.TaskNotes || "");
+  notes.appendChild(pre2);
+  box.appendChild(notes);
+
+  // Actions (library button removed)
+  var act = el("div","box");
+  act.appendChild(el("div","k","Actions"));
+
+  var row = el("div","actions");
+
+  var b1 = el("button","btn2 primary","Open Case Item");
+  on(b1,"click",function(){ spOpenItem(CONFIG.LISTS.FOIA, item.Id); });
+  row.appendChild(b1);
+
+  var b3 = el("button","btn2","Copy Case #");
+  on(b3,"click",function(){
+    try{
+      var temp = el("textarea");
+      temp.value = item.Title || "";
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+    } catch(e){}
+  });
+  row.appendChild(b3);
+
+  act.appendChild(row);
+
+  act.appendChild(el("div","footnote",
+    "This dashboard is read-only for reliability. Workers can open the item to update fields in SharePoint."
+  ));
+
+  box.appendChild(act);
+  return box;
+}
+
+
+/* ===================== FOIA: SMALL PLACEHOLDER PANEL ===================== */ function _foiaPanelMsg(title, msg){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,title));
+  p.appendChild(h);
+  var b = el("div","panel-b");
+  b.appendChild(el("div","muted",msg));
+  p.appendChild(b);
+  return p;
+}
+
+
+/* ============================================================
+   NOTE:
+   - _foiaSumTimeByOffice / _foiaSumTimeByCase can remain in your file,
+     but they are no longer called by this FOIA section.
+   ============================================================ */
+
+
+
+ /* ============================================================
+    SECTION 2/3 — OIs MODULE
+    - load: Active OIs (Assignedto expand)
+    - filters: search/year/sitting/status/assigned + chart click filters
+    - UI: filters panel + KPIs + charts + table + details
+    ============================================================ */
+ function renderOIS(){
+  // Ensure OI data is loaded once
+  if(!STATE.data.oi || !STATE.data.oi.length){
+    if(STATE.loading){
+      left.appendChild(_oiPanelMsg("Operating Instructions", "Loading OI data..."));
+      return;
+    }
+    _oiLoad().then(function(){
+      render();
+    }).catch(function(err){
+      console.error(err);
+      left.appendChild(_oiPanelMsg("Operating Instructions", "Load failed: " + (err && err.message ? err.message : err)));
+    });
+    left.appendChild(_oiPanelMsg("Operating Instructions", "Loading OI data..."));
+    return;
+  }
+
+  var raw = STATE.data.oi.slice(0);
+  var filtered = _oiApplyFilters(raw);
+
+    // Left panels (KPIs + analytics + filters at bottom)
+  left.appendChild(_oiRenderKpis(raw, filtered));
+  left.appendChild(_oiRenderCharts(filtered));
+  left.appendChild(_oiRenderFilters(raw, filtered)); // filters LAST
+
+
+  // Right panels (OI table + details)
+right.appendChild(_oiRenderTableAndDetail(filtered));
+
+
+}
+
+/* ===================== OI: DATA LOAD ===================== */ 
+function _oiLoad(){
+  setLoading(true, "Loading OIs...");
+
+  // Active OIs list GUID + columns per doc  [oai_citation:0‡DOC SSM Lists and Columns 2.txt](sediment://file_000000005534720c882669cd45c53b51)
+  // Assignedto is a Person field, so expand Assignedto/Title for display.
+
+  var oiSelect = [
+    "Id","Title","StartDate","DueDate","Assignedto/Title","TaskNotes",
+    "PositionStatus","CurrentStatus","ReceivedDate","Deadline",
+    "ReviewcompletionDate","ReviewComplexity","PercentageChanged",
+    "DateCompleted","Timespentonreview","Temp","Modified","Created"
+  ].join(",");
+
+  var oiExpand = "Assignedto";
+
+  return spGetAll(CONFIG.LISTS.OI, oiSelect, oiExpand, null, "Modified desc", CONFIG.TOP)
+    .then(function(items){
+      STATE.data.oi = items || [];
+
+      if(!STATE.table.OI.selectedId && STATE.data.oi.length){
+        STATE.table.OI.selectedId = STATE.data.oi[0].Id;
+      }
+
+      setLoading(false, "OIs loaded • "+STATE.data.oi.length);
+      return true;
+    })
+    .catch(function(err){
+      setLoading(false, "OIs load failed");
+      throw err;
+    });
+}
+
+/* ===================== OI: FILTERING ===================== */ 
+function _oiApplyFilters(raw){
+  var f = STATE.filters.OI;
+  var rows = raw.slice(0);
+
+  // Year filter: allow StartDate year OR DueDate year
+  if(f.year && f.year !== "All"){
+    rows = rows.filter(function(r){
+      return yearOf(r.StartDate) === f.year || yearOf(r.DueDate) === f.year;
+    });
+  }
+
+  if(f.sitting && f.sitting.length){
+    rows = rows.filter(function(r){ return f.sitting.indexOf(r.PositionStatus) > -1; });
+  }
+  if(f.status && f.status.length){
+    rows = rows.filter(function(r){ return f.status.indexOf(r.CurrentStatus) > -1; });
+  }
+  if(f.assigned && f.assigned.length){
+    rows = rows.filter(function(r){
+      var a = (r.Assignedto && r.Assignedto.Title) ? r.Assignedto.Title : "";
+      return f.assigned.indexOf(a) > -1;
+    });
+  }
+
+  // Search
+  rows = rows.filter(function(r){
+    return matchesSearch(r, [
+      "Title","TaskNotes","CurrentStatus","PositionStatus"
+    ], f.search);
+  });
+
+  // Chart drill filter (single)
+  if(f.chartFilter && f.chartFilter.field && f.chartFilter.value){
+    rows = rows.filter(function(r){
+      var v = r[f.chartFilter.field];
+      // handle person fields if ever used as chart filter
+      if(v && typeof v === "object" && v.Title) v = v.Title;
+      return String(v || "") === f.chartFilter.value;
+    });
+  }
+
+  return rows;
+}
+
+/* ===================== OI: FILTER PANEL UI ===================== */ 
+function _oiRenderFilters(raw, filtered){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Filters (OIs)"));
+
+  var clear = el("button","btn btn-ghost","Clear");
+  clear.style.padding="6px 10px";
+  on(clear,"click",function(){
+    STATE.filters.OI = { search:"", year:"All", sitting:[], status:[], assigned:[], chartFilter:null };
+    STATE.table.OI.page = 1;
+    STATE.table.OI.selectedId = null;
+    render();
+  });
+  h.appendChild(clear);
+
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  var grid = el("div","filterGrid");
+
+  // Search
+  var r1 = el("div","frow");
+  r1.appendChild(el("label",null,"Search"));
+  var inp = el("input");
+inp.type="text";
+inp.id = "oiSearch";
+inp.placeholder="OI title, notes, status.";
+inp.value = STATE.filters.OI.search;
+on(inp,"input",function(){
+  var s = inp.selectionStart, e = inp.selectionEnd;
+  STATE.filters.OI.search = inp.value;
+  STATE.table.OI.page = 1;
+  _rerenderPreserveFocusById("oiSearch", s, e);
+});
+
+  r1.appendChild(inp);
+  grid.appendChild(r1);
+
+  // Year dropdown from StartDate/DueDate
+  var years = uniqSorted(raw.map(function(x){
+    return yearOf(x.StartDate) || yearOf(x.DueDate);
+  }).filter(function(y){ return !!y; }));
+  years.unshift("All");
+
+  var r2 = el("div","frow");
+  r2.appendChild(el("label",null,"Year"));
+  var sel = el("select");
+  for(var i=0;i<years.length;i++){
+    var opt = el("option");
+    opt.value = years[i];
+    opt.textContent = years[i];
+    if(years[i] === STATE.filters.OI.year) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  on(sel,"change",function(){
+    STATE.filters.OI.year = sel.value;
+    STATE.table.OI.page = 1;
+    render();
+  });
+  r2.appendChild(sel);
+  grid.appendChild(r2);
+
+  // Chips (multi-select)
+  grid.appendChild(_oiChipMulti("Sitting With", uniqSorted(raw.map(function(x){return x.PositionStatus;})), STATE.filters.OI.sitting, function(v){
+    toggleArr(STATE.filters.OI.sitting, v); STATE.table.OI.page=1; render();
+  }));
+  grid.appendChild(_oiChipMulti("Current Status", uniqSorted(raw.map(function(x){return x.CurrentStatus;})), STATE.filters.OI.status, function(v){
+    toggleArr(STATE.filters.OI.status, v); STATE.table.OI.page=1; render();
+  }));
+
+  // AssignedTo values
+  var assigned = uniqSorted(raw.map(function(x){
+    return (x.Assignedto && x.Assignedto.Title) ? x.Assignedto.Title : "";
+  }));
+  grid.appendChild(_oiChipMulti("Assigned To", assigned, STATE.filters.OI.assigned, function(v){
+    toggleArr(STATE.filters.OI.assigned, v); STATE.table.OI.page=1; render();
+  }));
+
+  b.appendChild(grid);
+  b.appendChild(el("div","muted","Showing "+filtered.length+" of "+raw.length));
+  p.appendChild(b);
+  return p;
+}
+
+function _oiChipMulti(label, values, selectedArr, onToggle){
+  var r = el("div","frow");
+  r.appendChild(el("label",null,label));
+  var box = el("div","chipbox");
+
+  if(!values.length){
+    box.appendChild(el("div","muted","No values"));
+  } else {
+    for(var i=0;i<values.length;i++){
+      var v = values[i];
+      if(v === null || v === undefined || v === "") continue;
+      var c = el("div","chip",v);
+      if(selectedArr.indexOf(v)>-1) c.classList.add("on");
+      (function(val,chip){
+        on(chip,"click",function(){ onToggle(val); });
+      })(v,c);
+      box.appendChild(c);
+    }
+  }
+  r.appendChild(box);
+  return r;
+}
+
+/* ===================== OI: KPI PANEL ===================== */ 
+function _oiRenderKpis(raw, filtered){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"OI KPIs"));
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+
+  var now = new Date().getTime();
+  var overdue = 0;
+  var due7 = 0;
+  for(var i=0;i<filtered.length;i++){
+    var d = new Date(filtered[i].DueDate || 0).getTime();
+    if(!d) continue;
+    if(d < now) overdue++;
+    else if(d < (now + 7*86400000)) due7++;
+  }
+
+  var row = el("div","kpiRow");
+  row.appendChild(kpi("OIs Shown", filtered.length, "Out of "+raw.length));
+  row.appendChild(kpi("Overdue", overdue, "Due date passed"));
+  row.appendChild(kpi("Due in 7 Days", due7, "Upcoming"));
+
+  b.appendChild(row);
+  b.appendChild(el("div","footnote","Tip: Click chart bars to drill down; click the same bar again to clear."));
+  p.appendChild(b);
+  return p;
+}
+
+/* ===================== OI: CHARTS PANEL ===================== */ 
+function _oiRenderCharts(filtered){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"OI Analytics"));
+
+  var clear = el("button","btn btn-ghost","Clear Chart Filter");
+  clear.style.padding="6px 10px";
+  on(clear,"click",function(){
+    STATE.filters.OI.chartFilter = null;
+    STATE.table.OI.page = 1;
+    render();
+  });
+  h.appendChild(clear);
+
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  var wrap = el("div","chartWrap");
+
+  // Chart 1: OIs by Sitting With
+  var bySit = groupCount(filtered,"PositionStatus").slice(0,8);
+  var c1 = el("div",null);
+  renderBarChart(
+    c1,
+    "OIs by Sitting With",
+    bySit,
+    (STATE.filters.OI.chartFilter && STATE.filters.OI.chartFilter.field==="PositionStatus") ? STATE.filters.OI.chartFilter.value : null,
+    function(val){
+      var cf = STATE.filters.OI.chartFilter;
+      if(cf && cf.field==="PositionStatus" && cf.value===val) STATE.filters.OI.chartFilter=null;
+      else STATE.filters.OI.chartFilter={field:"PositionStatus", value:val};
+      STATE.table.OI.page = 1;
+      render();
+    }
+  );
+  wrap.appendChild(c1);
+
+  // Chart 2: OIs by Status
+  var bySt = groupCount(filtered,"CurrentStatus").slice(0,8);
+  var c2 = el("div",null);
+  renderBarChart(
+    c2,
+    "OIs by Current Status",
+    bySt,
+    (STATE.filters.OI.chartFilter && STATE.filters.OI.chartFilter.field==="CurrentStatus") ? STATE.filters.OI.chartFilter.value : null,
+    function(val){
+      var cf2 = STATE.filters.OI.chartFilter;
+      if(cf2 && cf2.field==="CurrentStatus" && cf2.value===val) STATE.filters.OI.chartFilter=null;
+      else STATE.filters.OI.chartFilter={field:"CurrentStatus", value:val};
+      STATE.table.OI.page = 1;
+      render();
+    }
+  );
+  wrap.appendChild(c2);
+
+  b.appendChild(wrap);
+  p.appendChild(b);
+  return p;
+}
+
+/* ===================== OI: TABLE + DETAIL ===================== */ 
+function _oiRenderTableAndDetail(filtered){
+  var container = el("div","tableWrap");
+
+  // Table panel
+  var pTable = el("div","panel");
+  var h1 = el("div","panel-h");
+  h1.appendChild(el("div",null,"Operating Instructions"));
+  pTable.appendChild(h1);
+
+  var b1 = el("div","panel-b");
+  var table = el("table","tbl");
+
+  var cols = [
+    {k:"Title", t:"OI"},
+    {k:"PositionStatus", t:"Sitting With"},
+    {k:"CurrentStatus", t:"Status"},
+    {k:"DueDate", t:"Due"},
+    {k:"Assignedto", t:"Assigned To"}
+  ];
+
+  var st = STATE.table.OI;
+
+  function sortRows(rows){
+    var key = st.sortKey, dir = st.sortDir;
+    rows.sort(function(a,b){
+      var va = a[key], vb = b[key];
+
+      if(key === "DueDate" || key === "StartDate"){
+        va = new Date(va||0).getTime();
+        vb = new Date(vb||0).getTime();
+      } else if(key === "Assignedto"){
+        va = (va && va.Title) ? va.Title : "";
+        vb = (vb && vb.Title) ? vb.Title : "";
+        va = va.toLowerCase(); vb = vb.toLowerCase();
+      } else {
+        if(typeof va === "string") va = va.toLowerCase();
+        if(typeof vb === "string") vb = vb.toLowerCase();
+      }
+
+      if(va < vb) return dir==="asc" ? -1 : 1;
+      if(va > vb) return dir==="asc" ? 1 : -1;
+      return 0;
+    });
+    return rows;
+  }
+
+  var rows = sortRows(filtered.slice(0));
+  var total = rows.length;
+  var pageSize = CONFIG.TABLE_PAGE_SIZE;
+  var pages = Math.max(1, Math.ceil(total / pageSize));
+  if(st.page > pages) st.page = pages;
+
+  var start = (st.page-1) * pageSize;
+  var pageRows = rows.slice(start, start+pageSize);
+
+  // header
+  var thead = el("thead");
+  var trh = el("tr");
+  for(var i=0;i<cols.length;i++){
+    (function(c){
+      var th = el("th",null,c.t);
+      if(st.sortKey === c.k) th.textContent = c.t + (st.sortDir==="asc" ? " ▲" : " ▼");
+      on(th,"click",function(){
+        if(st.sortKey === c.k) st.sortDir = (st.sortDir==="asc" ? "desc" : "asc");
+        else { st.sortKey = c.k; st.sortDir = "asc"; }
+        render();
+      });
+      trh.appendChild(th);
+    })(cols[i]);
+  }
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  // body
+  var tbody = el("tbody");
+  for(i=0;i<pageRows.length;i++){
+    (function(r){
+      var tr = el("tr");
+      if(st.selectedId === r.Id) tr.classList.add("rowSel");
+      on(tr,"click",function(){
+        st.selectedId = r.Id;
+        render();
+      });
+
+      tr.appendChild(tdLink(r.Title, function(){ st.selectedId=r.Id; render(); }));
+      tr.appendChild(tdTxt(r.PositionStatus));
+      tr.appendChild(tdTxt(r.CurrentStatus));
+      tr.appendChild(tdTxt(fmtDate(r.DueDate)));
+      tr.appendChild(tdTxt((r.Assignedto && r.Assignedto.Title) ? r.Assignedto.Title : ""));
+
+      tbody.appendChild(tr);
+    })(pageRows[i]);
+  }
+  table.appendChild(tbody);
+  b1.appendChild(table);
+
+  // pager
+  var pager = el("div","pager");
+  var prev = el("button","pbtn","Prev");
+  prev.disabled = (st.page <= 1);
+  on(prev,"click",function(){ st.page--; render(); });
+
+  var next = el("button","pbtn","Next");
+  next.disabled = (st.page >= pages);
+  on(next,"click",function(){ st.page++; render(); });
+
+  pager.appendChild(el("div","muted","Page "+st.page+" / "+pages+" • "+total+" rows"));
+  pager.appendChild(prev);
+  pager.appendChild(next);
+  b1.appendChild(pager);
+
+  pTable.appendChild(b1);
+
+  // Detail panel
+  var pDetail = el("div","panel");
+  var h2 = el("div","panel-h");
+  h2.appendChild(el("div",null,"Details"));
+  pDetail.appendChild(h2);
+
+  var b2 = el("div","panel-b");
+  b2.appendChild(_oiRenderDetail(st.selectedId));
+  pDetail.appendChild(b2);
+
+  container.appendChild(pTable);
+  container.appendChild(pDetail);
+  return container;
+}
+
+function _oiRenderDetail(id){
+  var box = el("div","detail");
+  if(!id){
+    box.appendChild(el("div","box muted","Select an OI to see details."));
+    return box;
+  }
+
+  var item = null;
+  var rows = STATE.data.oi || [];
+  for(var i=0;i<rows.length;i++){
+    if(rows[i].Id === id){ item = rows[i]; break; }
+  }
+  if(!item){
+    box.appendChild(el("div","box muted","Selected item not found (filters may have changed)."));
+    return box;
+  }
+
+  var titleBox = el("div","box");
+  titleBox.appendChild(el("h3",null,item.Title || "(No Title)"));
+  titleBox.appendChild(el("div","muted","Start: "+fmtDateTime(item.StartDate)+" • Due: "+fmtDateTime(item.DueDate)));
+  box.appendChild(titleBox);
+
+  var meta = el("div","meta");
+  meta.appendChild(kv("Sitting With", item.PositionStatus));
+  meta.appendChild(kv("Status", item.CurrentStatus));
+  meta.appendChild(kv("Assigned To", (item.Assignedto && item.Assignedto.Title) ? item.Assignedto.Title : ""));
+  meta.appendChild(kv("Received Date", fmtDateTime(item.ReceivedDate)));
+  meta.appendChild(kv("Deadline", fmtDateTime(item.Deadline)));
+  meta.appendChild(kv("Review Completion", fmtDateTime(item.ReviewcompletionDate)));
+  box.appendChild(wrapBox(meta));
+
+  var notes = el("div","box");
+  notes.appendChild(el("div","k","Notes"));
+  var pre = el("pre");
+  pre.textContent = item.TaskNotes || "";
+  notes.appendChild(pre);
+  box.appendChild(notes);
+
+  var act = el("div","box");
+  act.appendChild(el("div","k","Actions"));
+  var row = el("div","actions");
+
+  var b1 = el("button","btn2 primary","Open OI Item");
+  on(b1,"click",function(){ spOpenItem(CONFIG.LISTS.OI, item.Id); });
+  row.appendChild(b1);
+
+  act.appendChild(row);
+  act.appendChild(el("div","footnote","Read-only dashboard. Open the list item to update status/notes."));
+  box.appendChild(act);
+
+  return box;
+}
+
+/* ===================== OI: SMALL PLACEHOLDER PANEL ===================== */ 
+function _oiPanelMsg(title, msg){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,title));
+  p.appendChild(h);
+  var b = el("div","panel-b");
+  b.appendChild(el("div","muted",msg));
+  p.appendChild(b);
+  return p;
+}
+
+
+/* ============================================================
+   SECTION 3/3 — RECORDS MODULE (COMPLETE REPLACEMENT)
+   ============================================================ */
+
+/* ===================== RECORDS: SAFE FALLBACKS (STRICT-SAFE) ===================== */
+/* IMPORTANT:
+   - Do NOT declare functions inside IF blocks under "use strict"
+   - Do NOT check window[...] because helpers exist inside this IIFE scope
+   - Use typeof checks and only define minimal fallbacks if truly missing
+*/
+if(typeof toNum === "undefined"){
+  var toNum = function(v){ var n = Number(v); return isNaN(n) ? 0 : n; };
+}
+if(typeof esc === "undefined"){
+  var esc = function(s){
+    if(s === null || s === undefined) return "";
+    return String(s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  };
+}
+if(typeof fmtDateTime === "undefined"){
+  var fmtDateTime = function(d){
+    if(!d) return "";
+    var dt = new Date(d);
+    if(isNaN(dt.getTime())) return "";
+    var m = String(dt.getMonth()+1); if(m.length===1) m="0"+m;
+    var day = String(dt.getDate()); if(day.length===1) day="0"+day;
+    var h = dt.getHours(); var ap = h>=12?"PM":"AM"; h = h%12; if(h===0) h=12;
+    var min = String(dt.getMinutes()); if(min.length===1) min="0"+min;
+    return dt.getFullYear()+"-"+m+"-"+day+" "+h+":"+min+" "+ap;
+  };
+}
+if(typeof matchesSearch === "undefined"){
+  var matchesSearch = function(item, fields, q){
+    if(!q) return true;
+    q = String(q).toLowerCase();
+    for(var i=0;i<fields.length;i++){
+      var v = item[fields[i]];
+      if(v === null || v === undefined) continue;
+      v = String(v).toLowerCase();
+      if(v.indexOf(q) > -1) return true;
+    }
+    return false;
+  };
+}
+if(typeof uniqSorted === "undefined"){
+  var uniqSorted = function(arr){
+    var m = {}, out = [], i, v;
+    for(i=0;i<arr.length;i++){
+      v = arr[i];
+      if(v === null || v === undefined || v === "") continue;
+      v = String(v);
+      if(!m[v]){ m[v]=1; out.push(v); }
+    }
+    out.sort(function(a,b){
+      a=a.toLowerCase(); b=b.toLowerCase();
+      return a<b ? -1 : (a>b ? 1 : 0);
+    });
+    return out;
+  };
+}
+if(typeof toggleArr === "undefined"){
+  var toggleArr = function(arr, v){
+    var i = arr.indexOf(v);
+    if(i>-1) arr.splice(i,1);
+    else arr.push(v);
+  };
+}
+if(typeof kpi === "undefined"){
+  var kpi = function(label, value, sub){
+    var k = el("div","kpi");
+    k.appendChild(el("div","k",label));
+    k.appendChild(el("div","v",String(value)));
+    k.appendChild(el("div","s",sub||""));
+    return k;
+  };
+}
+if(typeof kv === "undefined"){
+  var kv = function(k, v){
+    var d = el("div","kv");
+    d.appendChild(el("div","k",k));
+    d.appendChild(el("div","v",(v===null||v===undefined) ? "" : String(v)));
+    return d;
+  };
+}
+if(typeof wrapBox === "undefined"){
+  var wrapBox = function(child){
+    var b = el("div","box");
+    b.appendChild(child);
+    return b;
+  };
+}
+if(typeof tdTxt === "undefined"){
+  var tdTxt = function(v){
+    var td = el("td");
+    td.textContent = (v===null||v===undefined) ? "" : String(v);
+    return td;
+  };
+}
+if(typeof tdHtml === "undefined"){
+  var tdHtml = function(html){
+    var td = el("td");
+    td.innerHTML = html;
+    return td;
+  };
+}
+if(typeof tdLink === "undefined"){
+  var tdLink = function(txt, onClick){
+    var td = el("td");
+    var a = el("a");
+    a.href="#";
+    a.textContent = txt || "";
+    on(a,"click",function(e){ e.preventDefault(); onClick(); });
+    td.appendChild(a);
+    return td;
+  };
+}
+
+/* ===================== RECORDS: ENTRY ===================== */ function renderRECORDS(){
+  _recEnsureStateDefaults();
+
+  // Ensure records data is loaded once
+  if(!STATE.data.rm || !STATE.data.rm.length || !STATE.data.ri || !STATE.data.ri.length){
+    if(STATE.loading){
+      left.appendChild(_recPanelMsg("Records", "Loading Records data..."));
+      return;
+    }
+    _recLoad().then(function(){
+      render();
+    }).catch(function(err){
+      console.error(err);
+      left.appendChild(_recPanelMsg("Records", "Load failed: " + (err && err.message ? err.message : err)));
+    });
+    left.appendChild(_recPanelMsg("Records", "Loading Records data..."));
+    return;
+  }
+
+  // Build unified rows for LEFT filters + search
+  var rawAll = _recMerge(STATE.data.rm, STATE.data.ri);
+
+   // LEFT (KPIs + analytics + filters at bottom)
+  var filteredAll = _recApplyFilters(rawAll);
+  var execWrap = el("div","recordsExecKpis");
+execWrap.appendChild(_recRenderExecTiles(rawAll, filteredAll));
+left.appendChild(execWrap);
+
+
+
+  left.appendChild(_recRenderAnalyticsBars(filteredAll));
+  left.appendChild(_recRenderFilters(rawAll, filteredAll)); // filters LAST
+
+
+  // RIGHT
+  try{
+    right.appendChild(_recRenderSingleSection(filteredAll));
+  }catch(e){
+    console.error(e);
+    right.appendChild(_recPanelMsg("Records", "Right-side render failed: " + (e && e.message ? e.message : e)));
+  }
+}
+
+/* ===================== RECORDS: DEFAULT STATE ===================== */ function _recEnsureStateDefaults(){
+  if(!STATE) window.STATE = {};
+  if(!STATE.data) STATE.data = {};
+  if(!STATE.filters) STATE.filters = {};
+  if(!STATE.table) STATE.table = {};
+
+  if(!STATE.filters.RECORDS){
+    STATE.filters.RECORDS = {
+      search: "",
+      unit: [],
+      position: [],
+      apptRM: [],
+      cert: [],
+      afrims: [],
+      erm: [],
+      riskGroup: [],
+      showAllRisks: false,
+      riskRaw: [],
+      chartFilter: null
+    };
+  }
+
+  if(!STATE.recordsUI){
+    STATE.recordsUI = {
+      pieFilter: null,      // { key, value, fn }
+      selectedRMId: null
+    };
+  }
+
+  if(!STATE.table.RECORDS){
+    STATE.table.RECORDS = {
+      sortKey: "Unit",
+      sortDir: "asc",
+      selectedId: null
+    };
+  }
+}
+
+/* ===================== RECORDS: VALUE CLEANERS (NO [object Object]) ===================== */
+
+// Generic "stringify SharePoint value" (handles People/Lookup shapes + results arrays) 
+function _recText(v){
+  if(v === null || v === undefined) return "";
+
+  if(typeof v === "string" || typeof v === "number" || typeof v === "boolean") return String(v);
+
+  // arrays
+  if(Array.isArray(v)){
+    var parts = [];
+    for(var i=0;i<v.length;i++){
+      var s = _recText(v[i]);
+      if(s) parts.push(s);
+    }
+    return parts.join(", ");
+  }
+
+  // SharePoint multi-value can be { results: [...] }
+  try{
+    if(typeof v === "object" && v.results && Array.isArray(v.results)){
+      return _recText(v.results);
+    }
+  }catch(e){}
+
+  // Person/Lookup/etc.
+  try{
+    if(typeof v === "object"){
+      if(v.Email) return String(v.Email);
+      if(v.EMail) return String(v.EMail);
+      if(v.Mail)  return String(v.Mail);
+      if(v.Title) return String(v.Title);
+      if(v.Name)  return String(v.Name);
+      if(v.Url)   return String(v.Url);
+      try { return JSON.stringify(v); } catch(e2){}
+    }
+  }catch(e3){}
+
+  return String(v);
+}
+
+function _recCleanText(v){
+  var s = _recText(v);
+  if(!s) return "";
+  s = s.replace(/\s+/g, " ").trim();
+  if(s === "undefined" || s === "null" || s === "[object Object]") return "";
+  return s;
+}
+
+// Convenience for Email display (prefers email-like strings) 
+function _recEmailText(v){
+  var s = _recCleanText(v);
+  if(!s) return "";
+
+  // if it looks like JSON, try extracting an email
+  if(s.charAt(0) === "{" || s.charAt(0) === "["){
+    var m = s.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    return m ? m[0] : s;
+  }
+
+  var m2 = s.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  if(m2) return m2[0];
+
+  return s;
+}
+
+// KV that hides empty values
+function _recKvIf(label, value){
+  var v = _recCleanText(value);
+  if(!v) return null;
+  return kv(label, v);
+}
+
+/* ===================== RECORDS: DATA LOAD (FIELD-MAP DRIVEN) ===================== */ 
+function _recLoad(){
+  _recEnsureStateDefaults();
+  setLoading(true, "Loading Records lists...");
+
+  // ---- RM internal names (Record Managers) ----
+  var rmEmail=null, rmPrimaryInv=null, rmAdditionalInv=null, rmUnit=null, rmPosition=null;
+  var rmCompDate=null, rmCertValidation=null, rmApptValidation=null, rmAfrimsAccess=null, rmErmAccess=null;
+  var rmRisk=null, rmPhone=null;
+
+  // ---- RI internal names (Record Inventories) ----
+  var riInventory=null, riApptLetter=null, riAudited=null, riActionNeeded=null, riAssignedTech=null, riDeadline=null;
+
+  function pick(map, arr){
+    for(var i=0;i<arr.length;i++){
+      if(map[arr[i]]) return map[arr[i]];
+    }
+    return null;
+  }
+
+  function buildRMQuery(){
+    var sel = ["Id","Title","Modified","Created"];
+    var exp = [];
+
+    function addText(internal){ if(internal) sel.push(internal); }
+    function addLookupTitle(internal){
+      if(!internal) return;
+      sel.push(internal + "/Title");
+      exp.push(internal);
+    }
+
+    // Email can be Person/Lookup – safest is expand Title
+    if(rmEmail) addLookupTitle(rmEmail);
+
+    addText(rmPrimaryInv);
+    addText(rmAdditionalInv);
+    addText(rmUnit);
+    addText(rmPosition);
+    addText(rmPhone);
+
+    addText(rmCompDate);
+    addText(rmCertValidation);
+    addText(rmApptValidation);
+    addText(rmAfrimsAccess);
+    addText(rmErmAccess);
+    addText(rmRisk);
+
+    return { select: sel.join(","), expand: (exp.length ? exp.join(",") : "") };
+  }
+
+  function buildRIQuery(){
+    var sel = ["Id","Title","Modified","Created"];
+    var exp = [];
+
+    function addText(internal){ if(internal) sel.push(internal); }
+    function addLookupTitle(internal){
+      if(!internal) return;
+      sel.push(internal + "/Title");
+      exp.push(internal);
+    }
+
+    addText(riInventory);
+    addText(riApptLetter);
+    addText(riAudited);
+    addText(riActionNeeded);
+    addText(riDeadline);
+    addLookupTitle(riAssignedTech);
+
+    return { select: sel.join(","), expand: (exp.length ? exp.join(",") : "") };
+  }
+
+  return Promise.all([
+    spGetFieldMap(CONFIG.LISTS.RM),
+    spGetFieldMap(CONFIG.LISTS.RI)
+  ]).then(function(allMaps){
+    var RM = allMaps[0] || {};
+    var RI = allMaps[1] || {};
+
+    // RM (titles must match displayed column titles)
+    rmEmail          = pick(RM, ["Email"]);
+    rmPrimaryInv     = pick(RM, ["Primary Inventory"]);
+    rmAdditionalInv  = pick(RM, ["Additional Inventories"]);
+    rmUnit           = pick(RM, ["Unit"]);
+    rmPosition       = pick(RM, ["Are you a Primary or Alternate (Unit/Office)"]);
+    rmPhone          = pick(RM, ["Phone", "Telephone", "Phone Number", "DSN", "Commercial Phone"]);
+
+    rmCompDate       = pick(RM, ["Comp Date"]);
+    rmCertValidation = pick(RM, ["Certification Validation"]);
+    rmApptValidation = pick(RM, ["Appointment Letter Validation"]);
+    rmAfrimsAccess   = pick(RM, ["AFRIMS Access"]);
+    rmErmAccess      = pick(RM, ["ERM Access"]);
+    rmRisk           = pick(RM, ["Risk"]);
+
+    // RI
+    riInventory    = pick(RI, ["Inventory"]);
+    riApptLetter   = pick(RI, ["Appointment Letter"]);
+    riAudited      = pick(RI, ["Audited"]);
+    riActionNeeded = pick(RI, ["Action Needed"]);
+    riAssignedTech = pick(RI, ["Assigned Technician"]);
+    riDeadline     = pick(RI, ["Deadline"]);
+
+    var qRM = buildRMQuery();
+    var qRI = buildRIQuery();
+
+    return Promise.all([
+      spGetAll(CONFIG.LISTS.RM, qRM.select, qRM.expand || null, null, "Modified desc", CONFIG.TOP),
+      spGetAll(CONFIG.LISTS.RI, qRI.select, qRI.expand || null, null, "Modified desc", CONFIG.TOP)
+    ]);
+  }).then(function(rows){
+    var rmRows = rows[0] || [];
+    var riRows = rows[1] || [];
+
+    // Normalize RM rows into canonical props used by UI
+    for(var i=0;i<rmRows.length;i++){
+      var r = rmRows[i];
+
+      // Email is Person/Lookup – force string-safe
+      r.Email = "";
+      if(rmEmail){
+        var ev = r[rmEmail];
+        if(ev && typeof ev === "object" && ev.Title) r.Email = ev.Title;
+        else if(r[rmEmail + "/Title"] != null) r.Email = String(r[rmEmail + "/Title"]);
+        else if(ev != null) r.Email = _recText(ev);
+      }
+
+      r.Unit = (rmUnit && r[rmUnit] != null) ? r[rmUnit] : "";
+      r.Position = (rmPosition && r[rmPosition] != null) ? r[rmPosition] : "";
+
+      r.PrimaryInventory = (rmPrimaryInv && r[rmPrimaryInv] != null) ? r[rmPrimaryInv] : "";
+      r.AdditionalInventories = (rmAdditionalInv && r[rmAdditionalInv] != null) ? r[rmAdditionalInv] : "";
+
+      r.Phone = (rmPhone && r[rmPhone] != null) ? _recText(r[rmPhone]) : "";
+
+      r.CompDate = (rmCompDate && r[rmCompDate] != null) ? r[rmCompDate] : "";
+      r.CertificationValidation = (rmCertValidation && r[rmCertValidation] != null) ? r[rmCertValidation] : "";
+      r.AppointmentLetterValidation = (rmApptValidation && r[rmApptValidation] != null) ? r[rmApptValidation] : "";
+      r.AFRIMSAccess = (rmAfrimsAccess && r[rmAfrimsAccess] != null) ? r[rmAfrimsAccess] : "";
+      r.ERMAccess = (rmErmAccess && r[rmErmAccess] != null) ? r[rmErmAccess] : "";
+      r.Risk = (rmRisk && r[rmRisk] != null) ? r[rmRisk] : "";
+    }
+
+    // Normalize RI rows into canonical props
+    for(var j=0;j<riRows.length;j++){
+      var x = riRows[j];
+      x.Inventory = (riInventory && x[riInventory] != null) ? x[riInventory] : "";
+      x.AppointmentLetter = (riApptLetter && x[riApptLetter] != null) ? x[riApptLetter] : "";
+      x.Audited = (riAudited && x[riAudited] != null) ? x[riAudited] : "";
+      x.ActionNeeded = (riActionNeeded && x[riActionNeeded] != null) ? x[riActionNeeded] : "";
+
+      x.AssignedTechnician = "";
+      if(riAssignedTech){
+        var tv = x[riAssignedTech];
+        if(tv && typeof tv === "object" && tv.Title) x.AssignedTechnician = tv.Title;
+        else if(x[riAssignedTech + "/Title"] != null) x.AssignedTechnician = String(x[riAssignedTech + "/Title"]);
+        else if(tv != null) x.AssignedTechnician = _recText(tv);
+      }
+
+      x.Deadline = (riDeadline && x[riDeadline] != null) ? x[riDeadline] : "";
+    }
+
+    STATE.data.rm = rmRows;
+    STATE.data.ri = riRows;
+
+    // Default select RM for the right-side details
+    if(!STATE.recordsUI.selectedRMId && STATE.data.rm.length){
+      STATE.recordsUI.selectedRMId = STATE.data.rm[0].Id;
+    }
+
+    setLoading(false, "Records loaded • RM "+STATE.data.rm.length+" • Inventory "+STATE.data.ri.length);
+    return true;
+  }).catch(function(err){
+    setLoading(false, "Records load failed");
+    throw err;
+  });
+}
+
+/* ===================== RECORDS: MERGE + NORMALIZE MODEL ===================== */ 
+function _recMerge(rmRows, riRows){
+  var out = [];
+  var i;
+  for(i=0;i<(rmRows||[]).length;i++) out.push(_recNormalizeRM(rmRows[i]));
+  for(i=0;i<(riRows||[]).length;i++) out.push(_recNormalizeRI(riRows[i]));
+  return out;
+}
+
+function _recNormalizeRM(r){
+  return {
+    _type: "RM",
+    _sid: "RM:" + r.Id,
+    Id: r.Id,
+
+    Title: _recCleanText(r.Title),
+    Email: _recEmailText(r.Email),
+    Phone: _recCleanText(r.Phone),
+    Unit: _recCleanText(r.Unit),
+    Position: _recCleanText(r.Position),
+
+    PrimaryInventory: _recCleanText(r.PrimaryInventory),
+    AdditionalInventories: _recCleanText(r.AdditionalInventories),
+
+    AppointmentLetterValidation: _recCleanText(r.AppointmentLetterValidation),
+    CertificationValidation: _recCleanText(r.CertificationValidation),
+    AFRIMSAccess: _recCleanText(r.AFRIMSAccess),
+    ERMAccess: _recCleanText(r.ERMAccess),
+
+    Risk: _recCleanText(r.Risk),
+
+    Inventory: "",
+    AppointmentLetter: "",
+    Audited: "",
+    ActionNeeded: "",
+    AssignedTechnician: "",
+    Deadline: "",
+
+    Modified: r.Modified,
+    Created: r.Created
+  };
+}
+
+function _recNormalizeRI(r){
+  return {
+    _type: "RI",
+    _sid: "RI:" + r.Id,
+    Id: r.Id,
+
+    Title: _recCleanText(r.Title),
+    Unit: "",
+    Position: "",
+
+    Inventory: _recCleanText(r.Inventory),
+    AppointmentLetter: _recCleanText(r.AppointmentLetter),
+    Audited: _recCleanText(r.Audited),
+    ActionNeeded: _recCleanText(r.ActionNeeded),
+    AssignedTechnician: _recCleanText(r.AssignedTechnician),
+    Deadline: _recCleanText(r.Deadline),
+
+    Risk: "",
+
+    Email: "",
+    Phone: "",
+    PrimaryInventory: "",
+    AdditionalInventories: "",
+    AppointmentLetterValidation: "",
+    CertificationValidation: "",
+    AFRIMSAccess: "",
+    ERMAccess: "",
+
+    Modified: r.Modified,
+    Created: r.Created
+  };
+}
+
+/* ===================== RECORDS: FILTERING (LEFT) ===================== */ function _recApplyFilters(raw){
+  _recEnsureStateDefaults();
+  var f = STATE.filters.RECORDS;
+
+  if(!Array.isArray(f.unit)) f.unit = [];
+  if(!Array.isArray(f.position)) f.position = [];
+  if(!Array.isArray(f.apptRM)) f.apptRM = [];
+  if(!Array.isArray(f.cert)) f.cert = [];
+  if(!Array.isArray(f.afrims)) f.afrims = [];
+  if(!Array.isArray(f.erm)) f.erm = [];
+  if(!Array.isArray(f.riskGroup)) f.riskGroup = [];
+  if(!Array.isArray(f.riskRaw)) f.riskRaw = [];
+  if(typeof f.search !== "string") f.search = "";
+  if(!f.chartFilter) f.chartFilter = null;
+  if(typeof f.showAllRisks !== "boolean") f.showAllRisks = false;
+
+  var rows = (raw || []).slice(0);
+
+  if(f.unit.length){
+    rows = rows.filter(function(r){ return f.unit.indexOf(r.Unit) > -1; });
+  }
+  if(f.position.length){
+    rows = rows.filter(function(r){ return f.position.indexOf(r.Position) > -1; });
+  }
+
+  if(f.apptRM.length){
+    rows = rows.filter(function(r){
+      return (r._type !== "RM") ? true : (f.apptRM.indexOf(String(r.AppointmentLetterValidation||"")) > -1);
+    });
+  }
+  if(f.cert.length){
+    rows = rows.filter(function(r){
+      return (r._type !== "RM") ? true : (f.cert.indexOf(_recCertBucket(String(r.CertificationValidation||""))) > -1);
+    });
+  }
+  if(f.afrims.length){
+    rows = rows.filter(function(r){
+      return (r._type !== "RM") ? true : (f.afrims.indexOf(String(r.AFRIMSAccess||"")) > -1);
+    });
+  }
+  if(f.erm.length){
+    rows = rows.filter(function(r){
+      return (r._type !== "RM") ? true : (f.erm.indexOf(String(r.ERMAccess||"")) > -1);
+    });
+  }
+
+  if(f.riskGroup.length){
+    rows = rows.filter(function(r){
+      if(r._type !== "RM") return true;
+      var g = _recRiskGroup(r.Risk || "");
+      return f.riskGroup.indexOf(g) > -1;
+    });
+  }
+
+  if(f.showAllRisks && f.riskRaw.length){
+    rows = rows.filter(function(r){
+      if(r._type !== "RM") return true;
+      return f.riskRaw.indexOf(String(r.Risk||"")) > -1;
+    });
+  }
+
+  rows = rows.filter(function(r){
+    return matchesSearch(r, [
+      "Title","Email","Phone","Unit","Position",
+      "PrimaryInventory","AdditionalInventories",
+      "AppointmentLetterValidation","CertificationValidation","AFRIMSAccess","ERMAccess","Risk",
+      "Inventory","AppointmentLetter","Audited","ActionNeeded","AssignedTechnician"
+    ], f.search);
+  });
+
+  if(f.chartFilter){
+    if(typeof f.chartFilter.fn === "function"){
+      rows = rows.filter(function(r){
+        try { return !!f.chartFilter.fn(r); } catch(e){ return true; }
+      });
+    } else if(f.chartFilter.field && f.chartFilter.value){
+      rows = rows.filter(function(r){
+        return String(r[f.chartFilter.field] || "") === f.chartFilter.value;
+      });
+    }
+  }
+
+  return rows;
+}
+
+/* ===================== RIGHT SIDE: SINGLE SECTION RENDER ===================== */ function _recRenderSingleSection(filteredAll){
+  _recEnsureStateDefaults();
+
+  var ui = STATE.recordsUI;
+
+  // Split from LEFT filtered set
+  var baseRM = [];
+  var baseRI = [];
+  for(var i=0;i<(filteredAll||[]).length;i++){
+    if(filteredAll[i]._type === "RM") baseRM.push(filteredAll[i]);
+    else if(filteredAll[i]._type === "RI") baseRI.push(filteredAll[i]);
+  }
+
+  // Center rows are baseRM + optional pieFilter (pieFilter does NOT change pies)
+  var centerRM = baseRM.slice(0);
+  if(ui.pieFilter && typeof ui.pieFilter.fn === "function"){
+    centerRM = centerRM.filter(function(r){
+      try { return !!ui.pieFilter.fn(r); } catch(e){ return true; }
+    });
+  }
+
+  // Ensure selectedRMId is valid
+  if(centerRM.length){
+    var found = false;
+    for(i=0;i<centerRM.length;i++){
+      if(String(centerRM[i].Id) === String(ui.selectedRMId)){ found = true; break; }
+    }
+    if(!found) ui.selectedRMId = centerRM[0].Id;
+  } else {
+    ui.selectedRMId = null;
+  }
+
+  var outer = el("div","recordsSingle");
+
+  // Top pies
+  outer.appendChild(_recRenderPieRow(baseRM, baseRI));
+
+  // Middle: breakdown + details
+  var mid = el("div","recordsMid");
+  mid.style.display = "grid";
+  mid.style.gridTemplateColumns = "1fr 360px";
+  mid.style.gap = "10px";
+
+  mid.appendChild(_recRenderBreakdownCenter(centerRM));
+  mid.appendChild(_recRenderRMDetails(ui.selectedRMId, centerRM));
+
+  outer.appendChild(mid);
+
+  return outer;
+}
+
+/* ===================== PIE ROW ===================== */ 
+function _recRenderPieRow(baseRM, baseRI){
+  _recEnsureStateDefaults();
+  var ui = STATE.recordsUI;
+
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Records"));
+
+  var clear = el("button","btn btn-ghost", (ui.pieFilter ? "Clear Pie Filter" : "No Pie Filter"));
+  clear.style.padding = "8px 10px";
+  clear.disabled = !ui.pieFilter;
+  on(clear,"click",function(){
+    ui.pieFilter = null;
+    render();
+  });
+  h.appendChild(clear);
+
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  b.style.padding = "10px";
+
+  var grid = el("div","pieGrid");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(5, minmax(180px, 1fr))";
+  grid.style.gap = "10px";
+
+  var C_GREEN = "#2ecc71";
+  var C_YELL  = "#f1c40f";
+  var C_RED   = "#e74c3c";
+  var C_BLACK = "#111111";
+
+  // Appointment Letters (from RI)
+  grid.appendChild(_recPiePanel(
+    "APPOINTMENT LETTERS",
+    _recPieData_AppointmentLetters(baseRI),
+    "PIE_APPT",
+    function(clickedLabel){
+      return function(rm){
+        var cls = _recClassRM_Appt(String(rm.AppointmentLetterValidation||""));
+        if(clickedLabel === "Verified") return cls === "good";
+        if(clickedLabel === "Incorrect/Missing") return cls === "bad";
+        return cls === "warn";
+      };
+    },
+    { "Verified": C_GREEN, "Incorrect/Missing": C_RED, "No Response": C_BLACK }
+  ));
+
+  // Audits (from RI)
+  grid.appendChild(_recPiePanel(
+    "AUDITS",
+    _recPieData_Audits(baseRI),
+    "PIE_AUDIT",
+    function(clickedLabel){
+      var label = String(clickedLabel||"");
+      return function(rm){
+        // This is a pragmatic mapping since audit details sit in RI; we use RM Risk text as “signal”
+        var t = String(rm.Risk||"").toLowerCase();
+        if(label === "No Findings") return t.indexOf("audit") === -1;
+        if(label === "Findings") return t.indexOf("audit") > -1;
+        return true; // Under Review
+      };
+    },
+    { "No Findings": C_GREEN, "Under Review": C_YELL, "Findings": C_RED }
+  ));
+
+  // Members Training (from RM)
+  grid.appendChild(_recPiePanel(
+    "MEMBERS TRAINING",
+    _recPieData_Training(baseRM),
+    "PIE_TRAIN",
+    function(clickedLabel){
+      return function(rm){
+        return _recTrainingBucket(String(rm.CertificationValidation||"")) === clickedLabel;
+      };
+    },
+    { "Certified": C_GREEN, "At-Risk": C_YELL, "Overdue": C_RED }
+  ));
+
+  // AFRIMS Access (from RM)
+  grid.appendChild(_recPiePanel(
+    "AFRIMS ACCESS",
+    _recPieData_Afrims(baseRM),
+    "PIE_AFRIMS",
+    function(clickedLabel){
+      return function(rm){
+        return _recAccessBucket_Afrims(String(rm.AFRIMSAccess||"")) === clickedLabel;
+      };
+    },
+    { "Granted Access": C_GREEN, "Under Review": C_YELL, "Not Granted": C_RED }
+  ));
+
+  // ERM Access (from RM)
+  grid.appendChild(_recPiePanel(
+    "ERM ACCESS",
+    _recPieData_Erm(baseRM),
+    "PIE_ERM",
+    function(clickedLabel){
+      return function(rm){
+        return _recAccessBucket_Erm(String(rm.ERMAccess||"")) === clickedLabel;
+      };
+    },
+    { "Granted": C_GREEN, "Under Review": C_YELL, "Not Granted": C_RED }
+  ));
+
+  b.appendChild(grid);
+  p.appendChild(b);
+  return p;
+}
+
+/* ===================== PIE PANELS (SVG PIE, ES5) ===================== */ function _recPiePanel(title, data, key, makeFn, colorsByLabel){
+  _recEnsureStateDefaults();
+  var ui = STATE.recordsUI;
+
+  var box = el("div","piePanel");
+  box.style.border = "1px solid rgba(255,255,255,.15)";
+  box.style.borderRadius = "14px";
+  box.style.overflow = "hidden";
+  box.style.background = "rgba(0,0,0,.05)";
+
+  var hd = el("div","pieHead");
+  hd.style.padding = "8px 10px";
+  hd.style.background = "rgba(0,120,212,.9)";
+  hd.style.color = "#fff";
+  hd.style.fontWeight = "700";
+  hd.style.fontSize = "12px";
+  hd.style.letterSpacing = ".5px";
+  hd.textContent = title;
+  box.appendChild(hd);
+
+  var line = el("div","pieCounts");
+  line.style.display = "grid";
+  line.style.gridTemplateColumns = "repeat(3, 1fr)";
+  line.style.gap = "6px";
+  line.style.padding = "8px 10px 0 10px";
+
+  for(var i=0;i<(data||[]).length;i++){
+    var it = data[i];
+    var pill = el("div","muted", String(it.label || "") + " ");
+    pill.style.display = "flex";
+    pill.style.justifyContent = "space-between";
+    pill.style.alignItems = "center";
+    pill.style.fontSize = "12px";
+    pill.style.padding = "2px 6px";
+    pill.style.borderRadius = "10px";
+    pill.style.background = "rgba(255,255,255,.55)";
+    pill.style.color = "#111";
+
+    var cnt = el("div",null,String(it.value || 0));
+    cnt.style.fontWeight = "800";
+    pill.appendChild(cnt);
+
+    line.appendChild(pill);
+  }
+  box.appendChild(line);
+
+  var body = el("div","pieBody");
+  body.style.padding = "6px 10px 10px 10px";
+
+  var activeLabel = (ui.pieFilter && ui.pieFilter.key === key) ? ui.pieFilter.value : null;
+
+  var svg = _recBuildPieSvg(data, activeLabel, function(label){
+    if(ui.pieFilter && ui.pieFilter.key === key && ui.pieFilter.value === label){
+      ui.pieFilter = null;
+      render();
+      return;
+    }
+    ui.pieFilter = {
+      key: key,
+      value: label,
+      fn: (typeof makeFn === "function" ? makeFn(label) : null)
+    };
+    render();
+  }, colorsByLabel || null);
+
+  body.appendChild(svg);
+
+  var leg = el("div","pieLegend");
+  leg.style.display = "grid";
+  leg.style.gridTemplateColumns = "1fr";
+  leg.style.gap = "4px";
+  leg.style.marginTop = "6px";
+
+  for(i=0;i<(data||[]).length;i++){
+    (function(itm){
+      var a = el("div","chip", itm.label);
+      a.style.cursor = "pointer";
+      if(activeLabel === itm.label) a.classList.add("on");
+      on(a,"click",function(){
+        if(ui.pieFilter && ui.pieFilter.key === key && ui.pieFilter.value === itm.label){
+          ui.pieFilter = null;
+        } else {
+          ui.pieFilter = {
+            key: key,
+            value: itm.label,
+            fn: (typeof makeFn === "function" ? makeFn(itm.label) : null)
+          };
+        }
+        render();
+      });
+      leg.appendChild(a);
+    })(data[i]);
+  }
+
+  body.appendChild(leg);
+  box.appendChild(body);
+
+  return box;
+}
+
+function _recBuildPieSvg(data, activeLabel, onClick, colorsByLabel){
+  var total = 0, i;
+  for(i=0;i<(data||[]).length;i++) total += (data[i].value || 0);
+  if(total <= 0) total = 1;
+
+  var w = 220, h = 140;
+  var cx = 80, cy = 70, r = 55;
+
+  // ✅ QUOTED namespace (prevents syntax error)
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
+  var svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox","0 0 "+w+" "+h);
+  svg.style.width = "100%";
+  svg.style.height = "140px";
+
+  var start = -Math.PI/2;
+
+  for(i=0;i<(data||[]).length;i++){
+    var v = (data[i].value || 0);
+    var ang = (v/total) * Math.PI * 2;
+    var end = start + ang;
+
+    var path = document.createElementNS(SVG_NS, "path");
+    var d = _recPieArcPath(cx, cy, r, start, end);
+    path.setAttribute("d", d);
+
+    var lbl = String(data[i].label || "");
+    var fill = (colorsByLabel && colorsByLabel[lbl]) ? colorsByLabel[lbl] : "#bdc3c7";
+    path.setAttribute("fill", fill);
+
+    if(activeLabel && lbl === activeLabel){
+      path.setAttribute("stroke","#111");
+      path.setAttribute("stroke-width","3");
+    } else {
+      path.setAttribute("stroke","rgba(0,0,0,.12)");
+      path.setAttribute("stroke-width","1");
+    }
+
+    (function(label){
+      path.style.cursor = "pointer";
+      path.addEventListener("click", function(){
+        if(typeof onClick === "function") onClick(label);
+      });
+    })(lbl);
+
+    svg.appendChild(path);
+    start = end;
+  }
+
+  return svg;
+}
+
+function _recPieArcPath(cx, cy, r, a0, a1){
+  if(a1 === a0) a1 = a0 + 0.00001;
+  var x0 = cx + Math.cos(a0)*r;
+  var y0 = cy + Math.sin(a0)*r;
+  var x1 = cx + Math.cos(a1)*r;
+  var y1 = cy + Math.sin(a1)*r;
+  var large = (a1 - a0) > Math.PI ? 1 : 0;
+  return "M "+cx+" "+cy+" L "+x0+" "+y0+" A "+r+" "+r+" 0 "+large+" 1 "+x1+" "+y1+" Z"; }
+
+/* ===================== PIE DATA BUILDERS ===================== */ function _recPieData_AppointmentLetters(riRows){
+  var bad=0, ok=0, nr=0;
+  for(var i=0;i<(riRows||[]).length;i++){
+    var s = String(riRows[i].AppointmentLetter||"");
+    var cls = _recClassRI_Appt(s);
+    if(cls === "good") ok++;
+    else if(cls === "warn") nr++;
+    else bad++;
+  }
+  return [
+    { label:"Verified", value:ok },
+    { label:"Incorrect/Missing", value:bad },
+    { label:"No Response", value:nr }
+  ];
+}
+function _recPieData_Audits(riRows){
+  var ur=0, fd=0, nf=0;
+  for(var i=0;i<(riRows||[]).length;i++){
+    var s = String(riRows[i].Audited||"");
+    var cls = _recClassRI_Audit(s);
+    if(cls === "good") nf++;
+    else if(cls === "warn") fd++;
+    else ur++;
+  }
+  return [
+    { label:"No Findings", value:nf },
+    { label:"Under Review", value:ur },
+    { label:"Findings", value:fd }
+  ];
+}
+function _recPieData_Training(rmRows){
+  var od=0, cert=0, risk=0;
+  for(var i=0;i<(rmRows||[]).length;i++){
+    var b = _recTrainingBucket(rmRows[i].CertificationValidation);
+    if(b === "Certified") cert++;
+    else if(b === "Overdue") od++;
+    else risk++;
+  }
+  return [
+    { label:"Certified", value:cert },
+    { label:"At-Risk", value:risk },
+    { label:"Overdue", value:od }
+  ];
+}
+function _recPieData_Afrims(rmRows){
+  var ur=0, ga=0, ng=0;
+  for(var i=0;i<(rmRows||[]).length;i++){
+    var b = _recAccessBucket_Afrims(rmRows[i].AFRIMSAccess);
+    if(b === "Granted Access") ga++;
+    else if(b === "Under Review") ur++;
+    else ng++;
+  }
+  return [
+    { label:"Granted Access", value:ga },
+    { label:"Under Review", value:ur },
+    { label:"Not Granted", value:ng }
+  ];
+}
+function _recPieData_Erm(rmRows){
+  var ur=0, g=0, ng=0;
+  for(var i=0;i<(rmRows||[]).length;i++){
+    var b = _recAccessBucket_Erm(rmRows[i].ERMAccess);
+    if(b === "Granted") g++;
+    else if(b === "Under Review") ur++;
+    else ng++;
+  }
+  return [
+    { label:"Granted", value:g },
+    { label:"Under Review", value:ur },
+    { label:"Not Granted", value:ng }
+  ];
+}
+
+/* ===================== CENTER: BREAKDOWN GRID ===================== */ function _recRenderBreakdownCenter(centerRM){
+  _recEnsureStateDefaults();
+  var ui = STATE.recordsUI;
+  var tstate = STATE.table.RECORDS;
+
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Breakdown"));
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  b.style.padding = "0";
+
+  var table = el("table","tbl");
+  var thead = el("thead");
+  var trh = el("tr");
+
+  var cols = [
+    { key:"Unit", label:"UNIT" },
+    { key:"InventoryBest", label:"INVENTORY" },
+    { key:"Position", label:"ROLE" },
+    { key:"Title", label:"NAME" },
+    { key:"Phone", label:"PHONE" },
+    { key:"ApptBucket", label:"APT LETTER" },
+    { key:"TrainBucket", label:"TRAINING" },
+    { key:"AfrimsBucket", label:"AFRIMS" },
+    { key:"ErmBucket", label:"ERM" }
+  ];
+
+  function sortLabel(c){
+    var s = c.label;
+    if(tstate.sortKey === c.key) s += (tstate.sortDir === "asc" ? " ▲" : " ▼");
+    return s;
+  }
+
+  function setSort(key){
+    if(tstate.sortKey === key){
+      tstate.sortDir = (tstate.sortDir === "asc" ? "desc" : "asc");
+    } else {
+      tstate.sortKey = key;
+      tstate.sortDir = "asc";
+    }
+    render();
+  }
+
+  for(var ci=0;ci<cols.length;ci++){
+    (function(col){
+      var th = el("th",null,sortLabel(col));
+      on(th,"click",function(){ setSort(col.key); });
+      trh.appendChild(th);
+    })(cols[ci]);
+  }
+
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  var tbody = el("tbody");
+
+  var rows = (centerRM||[]).slice(0);
+  for(var i=0;i<rows.length;i++){
+    rows[i]._InventoryBest = _recBestInventoryText(rows[i].PrimaryInventory, rows[i].AdditionalInventories);
+    rows[i]._ApptBucket = _recApptLabelForRM(rows[i]);
+    rows[i]._TrainBucket = _recTrainingBucket(String(rows[i].CertificationValidation||""));
+    rows[i]._AfrimsBucket = _recAccessBucket_Afrims(String(rows[i].AFRIMSAccess||""));
+    rows[i]._ErmBucket = _recAccessBucket_Erm(String(rows[i].ERMAccess||""));
+  }
+
+  function sval(r, key){
+    if(key === "InventoryBest") return String(r._InventoryBest||"");
+    if(key === "ApptBucket") return String(r._ApptBucket||"");
+    if(key === "TrainBucket") return String(r._TrainBucket||"");
+    if(key === "AfrimsBucket") return String(r._AfrimsBucket||"");
+    if(key === "ErmBucket") return String(r._ErmBucket||"");
+    return String(r[key] || "");
+  }
+
+  rows.sort(function(a,bx){
+    var ka = sval(a, tstate.sortKey).toLowerCase();
+    var kb = sval(bx, tstate.sortKey).toLowerCase();
+    if(ka < kb) return (tstate.sortDir === "asc" ? -1 : 1);
+    if(ka > kb) return (tstate.sortDir === "asc" ? 1 : -1);
+
+    var ua = String(a.Unit||"").toLowerCase();
+    var ub = String(bx.Unit||"").toLowerCase();
+    if(ua < ub) return -1;
+    if(ua > ub) return 1;
+    var na = String(a.Title||"").toLowerCase();
+    var nb = String(bx.Title||"").toLowerCase();
+    if(na < nb) return -1;
+    if(na > nb) return 1;
+    return 0;
+  });
+
+  for(i=0;i<rows.length;i++){
+    (function(r){
+      var tr = el("tr");
+      if(String(ui.selectedRMId) === String(r.Id)) tr.classList.add("rowSel");
+      on(tr,"click",function(){
+        ui.selectedRMId = r.Id;
+        render();
+      });
+
+      tr.appendChild(tdTxt(r.Unit || ""));
+      tr.appendChild(tdTxt(r._InventoryBest || ""));
+      tr.appendChild(tdTxt(r.Position || ""));
+      tr.appendChild(tdTxt(r.Title || ""));
+      tr.appendChild(tdTxt(r.Phone || ""));
+
+      tr.appendChild(tdHtml(_recBadgeHtml(r._ApptBucket, _recClassRM_Appt(String(r.AppointmentLetterValidation||"")))));
+      tr.appendChild(tdHtml(_recBadgeHtml(r._TrainBucket, _recClassRM_Cert(String(r.CertificationValidation||"")))));
+      tr.appendChild(tdHtml(_recBadgeHtml(r._AfrimsBucket, _recClassRM_Afrims(String(r.AFRIMSAccess||"")))));
+      tr.appendChild(tdHtml(_recBadgeHtml(r._ErmBucket, _recClassRM_Erm(String(r.ERMAccess||"")))));
+
+      tbody.appendChild(tr);
+    })(rows[i]);
+  }
+
+  table.appendChild(tbody);
+  b.appendChild(table);
+
+  var hint = el("div","footnote");
+  hint.style.padding = "8px 10px";
+  hint.textContent = (ui.pieFilter ? ("Pie Filter: " + ui.pieFilter.value) : "Pie Filter: (none)");
+  b.appendChild(hint);
+
+  p.appendChild(b);
+  return p;
+}
+
+function _recBestInventoryText(primary, additional){
+  var p = String(primary||"").trim();
+  if(p) return p;
+  var a = String(additional||"").trim();
+  if(!a) return "";
+  var first = a.split(/[;,]/)[0];
+  return first ? first.trim() : a;
+}
+function _recApptLabelForRM(rm){
+  var v = String(rm.AppointmentLetterValidation||"").trim();
+  if(!v) return "(Blank)";
+  return v;
+}
+
+/* ===================== RIGHT: DETAILS (CLEAN EXEC VIEW) ===================== */ function _recRenderRMDetails(selectedRMId, centerRM){
+  _recEnsureStateDefaults();
+
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Details"));
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+
+  if(!selectedRMId){
+    b.appendChild(el("div","muted","Select a Record Manager to see details."));
+    p.appendChild(b);
+    return p;
+  }
+
+  // Find selected RM
+  var item = null, i;
+  for(i=0;i<(centerRM||[]).length;i++){
+    if(String(centerRM[i].Id) === String(selectedRMId)){ item = centerRM[i]; break; }
+  }
+  if(!item){
+    for(i=0;i<(STATE.data.rm||[]).length;i++){
+      if(String(STATE.data.rm[i].Id) === String(selectedRMId)){ item = STATE.data.rm[i]; break; }
+    }
+  }
+  if(!item){
+    b.appendChild(el("div","muted","Selected Record Manager not found (filters may have changed)."));
+    p.appendChild(b);
+    return p;
+  }
+
+  // Always normalize into clean RM shape
+  item = _recNormalizeRM(item);
+
+  // Header
+  var top = el("div","box");
+  top.appendChild(el("h3",null, item.Title || "(No Name)"));
+
+  var line = [];
+  if(item.Unit) line.push("Unit: " + item.Unit);
+  if(item.Position) line.push("Role: " + item.Position);
+  line.push("Risk Group: " + _recRiskGroup(item.Risk || ""));
+  top.appendChild(el("div","muted", line.join(" • ")));
+  b.appendChild(top);
+
+  // Contact
+  var cm = el("div","meta");
+  var k1 = _recKvIf("Email", _recEmailText(item.Email));
+  var k2 = _recKvIf("Phone", item.Phone);
+  if(k1) cm.appendChild(k1);
+  if(k2) cm.appendChild(k2);
+
+  if(cm.childNodes.length){
+    var contact = el("div","box");
+    contact.appendChild(el("div","k","Contact"));
+    contact.appendChild(wrapBox(cm));
+    b.appendChild(contact);
+  }
+
+  // Inventories
+  var im = el("div","meta");
+  var i1 = _recKvIf("Primary Inventory", item.PrimaryInventory);
+  var i2 = _recKvIf("Additional Inventories", item.AdditionalInventories);
+  if(i1) im.appendChild(i1);
+  if(i2) im.appendChild(i2);
+
+  if(im.childNodes.length){
+    var inv = el("div","box");
+    inv.appendChild(el("div","k","Inventories"));
+    inv.appendChild(wrapBox(im));
+    b.appendChild(inv);
+  }
+
+  // Compliance
+  var apptTxt = _recCleanText(item.AppointmentLetterValidation);
+  var certTxt = _recCleanText(item.CertificationValidation);
+  var afrTxt  = _recCleanText(item.AFRIMSAccess);
+  var ermTxt  = _recCleanText(item.ERMAccess);
+
+  var comp = el("div","box");
+  comp.appendChild(el("div","k","Compliance"));
+
+  var snap = el("div",null);
+  snap.innerHTML =
+    _recBadgeHtml(apptTxt || "Appointment Letter", _recClassRM_Appt(apptTxt)) + " " +
+    _recBadgeHtml(certTxt || "Training", _recClassRM_Cert(certTxt)) + " " +
+    _recBadgeHtml(afrTxt  || "AFRIMS", _recClassRM_Afrims(afrTxt)) + " " +
+    _recBadgeHtml(ermTxt  || "ERM", _recClassRM_Erm(ermTxt));
+  comp.appendChild(snap);
+
+  var lm = el("div","meta");
+  var c1 = _recKvIf("Appointment Letter", apptTxt);
+  var c2 = _recKvIf("Training / Certification", certTxt);
+  var c3 = _recKvIf("AFRIMS Access", afrTxt);
+  var c4 = _recKvIf("ERM Access", ermTxt);
+  if(c1) lm.appendChild(c1);
+  if(c2) lm.appendChild(c2);
+  if(c3) lm.appendChild(c3);
+  if(c4) lm.appendChild(c4);
+  if(lm.childNodes.length) comp.appendChild(wrapBox(lm));
+
+  b.appendChild(comp);
+
+  // Open Issues
+  if(item.Risk){
+    var risk = el("div","box");
+    risk.appendChild(el("div","k","Open Issues"));
+    var pre = el("pre");
+    pre.textContent = item.Risk;
+    risk.appendChild(pre);
+    b.appendChild(risk);
+  }
+
+  // Dates
+  var dates = el("div","box");
+  dates.appendChild(el("div","k","Record Dates"));
+  var dm = el("div","meta");
+  dm.appendChild(kv("Last Updated", fmtDateTime(item.Modified)));
+  dm.appendChild(kv("Created", fmtDateTime(item.Created)));
+  dates.appendChild(wrapBox(dm));
+  b.appendChild(dates);
+
+  // Actions
+  var act = el("div","box");
+  act.appendChild(el("div","k","Actions"));
+  var row = el("div","actions");
+  var openBtn = el("button","btn2 primary","Open Item");
+  on(openBtn,"click",function(){ spOpenItem(CONFIG.LISTS.RM, item.Id); });
+  row.appendChild(openBtn);
+  act.appendChild(row);
+  b.appendChild(act);
+
+  p.appendChild(b);
+  return p;
+}
+
+/* ===================== BADGE + CLASSIFICATION HELPERS ===================== */ 
+function _recBadgeHtml(text, cls){
+  var c = "badge ";
+  if(cls === "good") c += "good";
+  else if(cls === "warn") c += "warn";
+  else c += "bad";
+
+  var t = (text===null||text===undefined||String(text).trim()==="") ? "(Blank)" : String(text);
+  return '<span class="'+c+'">' + esc(t) + '</span>'; }
+
+function _recClassRM_Appt(v){
+  v = String(v||"").toLowerCase();
+  if(v === "verified") return "good";
+  if(v.indexOf("needs") > -1) return "warn";
+  if(v === "incorrect") return "bad";
+  if(!v) return "bad";
+  return "bad";
+}
+function _recClassRM_Afrims(v){
+  v = String(v||"").toLowerCase();
+  if(v === "yes" || v.indexOf("grant") > -1) return "good";
+  if(v.indexOf("under") > -1 || v.indexOf("review") > -1 || v.indexOf("needs") > -1 || v.indexOf("pending") > -1) return "warn";
+  if(!v) return "bad";
+  return "bad";
+}
+function _recClassRM_Erm(v){
+  v = String(v||"").toLowerCase();
+  if(v === "granted" || v.indexOf("grant") > -1) return "good";
+  if(v.indexOf("under") > -1 || v.indexOf("review") > -1 || v.indexOf("needs") > -1 || v.indexOf("pending") > -1) return "warn";
+  if(!v) return "bad";
+  if(v.indexOf("not") > -1) return "bad";
+  return "bad";
+}
+function _recClassRM_Cert(v){
+  v = String(v||"").toLowerCase();
+  if(v === "validated") return "good";
+  if(v.indexOf("days out") > -1) return "warn";
+  if(v === "overdue") return "bad";
+  if(!v) return "bad";
+  if(v.indexOf("day") > -1) return "warn";
+  return "bad";
+}
+function _recClassRI_Appt(v){
+  v = String(v||"").toLowerCase();
+  if(v === "yes") return "good";
+  if(v.indexOf("needs follow") > -1) return "warn";
+  if(v === "incorrect" || v === "missing") return "bad";
+  if(!v) return "bad";
+  return "bad";
+}
+function _recClassRI_Audit(v){
+  v = String(v||"").toLowerCase();
+  if(v === "no findings") return "good";
+  if(v.indexOf("audited") > -1) return "warn";
+  if(v.indexOf("findings") > -1) return "warn";
+  if(v.indexOf("needs audit") > -1) return "bad";
+  if(v.indexOf("does not exist") > -1) return "bad";
+  if(!v) return "bad";
+  return "bad";
+}
+
+/* ---------- Risk grouping ---------- */ function _recRiskGroup(riskText){
+  var t = String(riskText||"").toLowerCase();
+  if(!t || t === "all validated") return "All Validated";
+
+  var hasAppt = (t.indexOf("appointment letter") > -1);
+  var hasCert = (t.indexOf("certification") > -1);
+  var hasAfr  = (t.indexOf("afrims") > -1);
+  var hasErm  = (t.indexOf("erm") > -1);
+
+  var n = 0;
+  if(hasAppt) n++;
+  if(hasCert) n++;
+  if(hasAfr)  n++;
+  if(hasErm)  n++;
+
+  if(n >= 2) return "Multiple";
+  if(hasAppt) return "Appointment Letter";
+  if(hasCert) return "Certification";
+  if(hasAfr)  return "AFRIMS";
+  if(hasErm)  return "ERM";
+  return "Multiple";
+}
+
+function _recCertBucket(v){
+  v = String(v||"").toLowerCase();
+  if(v === "validated") return "Validated";
+  if(v === "overdue") return "Overdue";
+  if(v.indexOf("day") > -1) return "Days Out";
+  if(v.indexOf("days out") > -1) return "Days Out";
+  return "Overdue";
+}
+
+/* ===================== REQUIRED BUCKET HELPERS ===================== */ function _recTrainingBucket(v){
+  var t = String(v || "").toLowerCase().trim();
+
+  if(t === "validated" || t === "certified" || t === "complete" || t === "completed") return "Certified";
+  if(t === "overdue" || t.indexOf("overdue") > -1 || t.indexOf("past due") > -1) return "Overdue";
+  if(t.indexOf("days out") > -1 || t.indexOf("day") > -1 || t.indexOf("due soon") > -1 || t.indexOf("at risk") > -1) return "At-Risk";
+
+  if(!t) return "Overdue";
+  return "At-Risk";
+}
+
+function _recAccessBucket_Afrims(v){
+  var t = String(v || "").toLowerCase().trim();
+
+  if(t === "yes" || t === "y" || t.indexOf("grant") > -1) return "Granted Access";
+  if(t.indexOf("under") > -1 || t.indexOf("review") > -1 || t.indexOf("needs") > -1 || t.indexOf("pending") > -1) return "Under Review";
+  if(t === "no" || t === "n" || t.indexOf("not") > -1 || t.indexOf("deny") > -1) return "Not Granted";
+
+  if(!t) return "Not Granted";
+  return "Under Review";
+}
+
+function _recAccessBucket_Erm(v){
+  var t = String(v || "").toLowerCase().trim();
+
+  if(t === "yes" || t === "y" || t === "granted" || t.indexOf("grant") > -1) return "Granted";
+  if(t.indexOf("under") > -1 || t.indexOf("review") > -1 || t.indexOf("needs") > -1 || t.indexOf("pending") > -1) return "Under Review";
+  if(t === "no" || t === "n" || t.indexOf("not") > -1 || t.indexOf("deny") > -1) return "Not Granted";
+
+  if(!t) return "Not Granted";
+  return "Under Review";
+}
+
+/* ===================== LEFT SIDE UI (SELF-CONTAINED + SAFE) ===================== */ function _recRenderFilters(rawAll, filteredAll){
+  _recEnsureStateDefaults();
+  var f = STATE.filters.RECORDS;
+
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Filters (Records)"));
+
+  var clear = el("button","btn btn-ghost","Clear");
+  clear.style.padding="6px 10px";
+  on(clear,"click",function(){
+    STATE.filters.RECORDS = {
+      search:"", unit:[], position:[], apptRM:[], cert:[], afrims:[], erm:[],
+      riskGroup:[], showAllRisks:false, riskRaw:[], chartFilter:null
+    };
+    STATE.recordsUI.pieFilter = null;
+    render();
+  });
+  h.appendChild(clear);
+
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  var grid = el("div","filterGrid");
+
+  // Search
+  var r1 = el("div","frow");
+  r1.appendChild(el("label",null,"Search"));
+  var inp = el("input");
+  inp.type = "text";
+  inp.id = "recSearch";
+  inp.placeholder = "Name, unit, inventory, risk text.";
+  inp.value = f.search;
+  on(inp,"input",function(){
+    f.search = inp.value;
+    render();
+  });
+  r1.appendChild(inp);
+  grid.appendChild(r1);
+
+  // Unit chips
+  var units = uniqSorted(rawAll.filter(function(x){return x._type==="RM";}).map(function(x){return x.Unit;}));
+  grid.appendChild(_recChipMulti("Unit", units, f.unit, function(v){
+    toggleArr(f.unit, v); render();
+  }));
+
+  // Role chips
+  var roles = uniqSorted(rawAll.filter(function(x){return x._type==="RM";}).map(function(x){return x.Position;}));
+  grid.appendChild(_recChipMulti("Role", roles, f.position, function(v){
+    toggleArr(f.position, v); render();
+  }));
+
+  // Risk group chips
+  var rgs = uniqSorted(rawAll.filter(function(x){return x._type==="RM";}).map(function(x){return _recRiskGroup(x.Risk);}));
+  grid.appendChild(_recChipMulti("Risk Group", rgs, f.riskGroup, function(v){
+    toggleArr(f.riskGroup, v); render();
+  }));
+
+  b.appendChild(grid);
+  b.appendChild(el("div","muted","Showing "+(filteredAll||[]).length+" of "+(rawAll||[]).length));
+  p.appendChild(b);
+  return p;
+}
+
+function _recChipMulti(label, values, selectedArr, onToggle){
+  var r = el("div","frow");
+  r.appendChild(el("label",null,label));
+  var box = el("div","chipbox");
+
+  values = (values||[]).filter(function(v){ return v !== null && v !== undefined && String(v).trim() !== ""; });
+
+  if(!values.length){
+    box.appendChild(el("div","muted","No values"));
+  } else {
+    for(var i=0;i<values.length;i++){
+      var v = values[i];
+      var c = el("div","chip",v);
+      if(selectedArr.indexOf(v)>-1) c.classList.add("on");
+      (function(val, chip){
+        on(chip,"click",function(){ onToggle(val); });
+      })(v,c);
+      box.appendChild(c);
+    }
+  }
+  r.appendChild(box);
+  return r;
+}
+
+function _recRenderExecTiles(rawAll, filteredAll){
+  _recEnsureStateDefaults();
+
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Records KPIs"));
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+
+  var rmAll = rawAll.filter(function(r){ return r._type==="RM"; });
+  var rmShown = filteredAll.filter(function(r){ return r._type==="RM"; });
+
+  var riskCount = 0;
+  for(var i=0;i<rmShown.length;i++){
+    if(_recRiskGroup(rmShown[i].Risk||"") !== "All Validated") riskCount++;
+  }
+
+  var row = el("div","kpiRow");
+  row.appendChild(kpi("Record Managers", rmShown.length, "Total RM: "+rmAll.length));
+  row.appendChild(kpi("Open Issues", riskCount, "In current filter"));
+  row.appendChild(kpi("Pie Filter", (STATE.recordsUI.pieFilter ? "On" : "Off"), (STATE.recordsUI.pieFilter ? STATE.recordsUI.pieFilter.value : "None")));
+  b.appendChild(row);
+
+  p.appendChild(b);
+  return p;
+}
+
+function _recRenderAnalyticsBars(filteredAll){
+  _recEnsureStateDefaults();
+
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,"Records Analytics"));
+  p.appendChild(h);
+
+  var b = el("div","panel-b");
+  b.appendChild(el("div","muted","Use the pie panels on the right to drill down."));
+  p.appendChild(b);
+  return p;
+}
+
+/* ===================== RECORDS: SMALL PLACEHOLDER PANEL ===================== */ 
+function _recPanelMsg(title, msg){
+  var p = el("div","panel");
+  var h = el("div","panel-h");
+  h.appendChild(el("div",null,title));
+  p.appendChild(h);
+  var b = el("div","panel-b");
+  b.appendChild(el("div","muted",msg));
+  p.appendChild(b);
+  return p;
+}
+
+
+
+
+
+
+ /* ===================== DATA LOADER SKELETON ===================== */
+ function loadAll(){
+   // NOTE: Each module section will hook into this loader.
+   // For now, keep it simple: modules will call their own load if needed.
+   render();
+ }
+
+ on(refreshBtn,"click",function(){
+   // Next parts will replace this with real reloading logic
+   setLoading(true,"Refresh requested (TODO)...");
+   setTimeout(function(){ setLoading(false,"Ready"); render(); }, 300);
+ });
+
+ /* ===================== START ===================== */
+ loadAll();
+
+})();
+</script>
