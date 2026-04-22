@@ -1,3 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOC SSM Dashboard</title>
+</head>
+<body>
+
 <!-- ============================================================
     DOC SSM SINGLE-PAGE DASHBOARD (Outline + TODO Script Sections)
     PART 1 OF 4: HTML + CSS + SCRIPT SKELETON (NO DATA LOGIC YET)
@@ -68,11 +77,12 @@
 
  #docSsmDashRoot .tableWrap{display:grid;grid-template-columns:1fr 360px;gap:14px;}
  @media(max-width:1300px){#docSsmDashRoot .tableWrap{grid-template-columns:1fr;}}
+ #docSsmDashRoot .tableStack{display:flex;flex-direction:column;gap:14px;}
  #docSsmDashRoot .tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;}
  #docSsmDashRoot .tbl th{position:sticky;top:0;background:#f2f7fd;border-bottom:1px solid #dbe8f6;text-align:left;padding:8px;font-weight:900;cursor:pointer;}
  #docSsmDashRoot .tbl td{border-bottom:1px solid #eef4fb;padding:8px;vertical-align:top;}
  #docSsmDashRoot .tbl tr:hover td{background:#fbfdff;}
- #docSsmDashRoot .rowSel td{background:#eaf4ff !important;}
+ #docSsmDashRoot .tbl tbody tr.rowSel td{background:#eaf4ff;}
  #docSsmDashRoot .badge{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:900;font-size:11px;border:1px solid #d6e4f1;background:#fff;}
  #docSsmDashRoot .badge.good{background:#eafff0;border-color:#b7f2c8;}
  #docSsmDashRoot .badge.warn{background:#fff7e6;border-color:#ffe2a8;}
@@ -158,12 +168,17 @@ function _fatal(label, err){
      OI:    "ff3dd122-3d04-4a6c-8f2e-bc31fd242967"
    },
 
+   /** Max rows per SharePoint $top page request. */
    TOP: 5000,
+   /** Rows rendered per page in every data table. */
    TABLE_PAGE_SIZE: 25,
 
+   /** CurrentStatus value that marks a FOIA case as closed. */
    FOIA_CLOSED_STATUS: "Case Closed",
 
+   /** Days since last modification before a FOIA row flags yellow (warn). */
    INACTIVITY_WARN: 14,
+   /** Days since last modification before a FOIA row flags red (bad). */
    INACTIVITY_BAD:  30
  };
 
@@ -263,7 +278,8 @@ CONFIG.FOIA_CLOSED_STATUS = "Case Closed"; CONFIG.FOIA_TRANSFERRED_STATUS = "Tra
 
  function spOpenItem(listGuid, itemId){
    var u = CONFIG.SITE_URL + "/_layouts/15/listform.aspx?PageType=4&ListId="+encodeURIComponent(listGuid)+"&ID="+encodeURIComponent(itemId);
-   window.open(u, "_blank");
+   var w = window.open(u, "_blank");
+   if(w) w.opener = null;
  }
 
 function spGetFieldMap(listGuid){
@@ -323,8 +339,10 @@ function spGetFieldMap(listGuid){
      rect.setAttribute("ry","8");
 
      var isActive = (activeValue && p.label === activeValue);
-     rect.setAttribute("fill", isActive ? "#0a76c6" : "#0b4e88");
-     rect.setAttribute("opacity", isActive ? "1" : "0.85");
+     var defaultFill = p.color ? p.color : "#0b4e88";
+     var activeFill  = p.color ? p.color : "#0a76c6";
+     rect.setAttribute("fill", isActive ? activeFill : defaultFill);
+     rect.setAttribute("opacity", isActive ? "1" : (p.color ? "0.88" : "0.85"));
      rect.style.cursor = "pointer";
 
      (function(val){
@@ -545,6 +563,7 @@ var gap       = (typeof opts.gap === "number") ? opts.gap : 10;
  }
  function tdHtml(html){
    var td = el("td");
+   /* values must be esc()-wrapped by callers */
    td.innerHTML = html;
    return td;
  }
@@ -571,14 +590,15 @@ var gap       = (typeof opts.gap === "number") ? opts.gap : 10;
    loading: false,
    data: { foia:[], time:[], poc:[], rm:[], ri:[], oi:[] },
    filters: {
-     FOIA:   { search:"", year:"All", office:[], status:[], opr:[], reqType:[], inactivity:"All", chartFilter:null },
+     FOIA:   { search:"", office:[], status:[], opr:[], reqType:[], inactivity:"All", chartFilter:null },
      OI:     { search:"", year:"All", sitting:[], status:[], assigned:[], chartFilter:null },
      RECORDS:{ search:"", unit:[], role:[], appt:[], afrims:[], erm:[], chartFilter:null }
    },
    table: {
-     FOIA:   { sortKey:"_InactivityDays", sortDir:"desc", page:1, selectedId:null },
-     OI:     { sortKey:"DueDate", sortDir:"asc", page:1, selectedId:null },
-     RECORDS:{ sortKey:"Risk", sortDir:"desc", page:1, selectedId:null }
+     FOIA:       { sortKey:"_InactivityDays", sortDir:"desc", page:1, selectedId:null },
+     OI:         { sortKey:"DueDate", sortDir:"asc", page:1, selectedId:null },
+     OI_COMPLETE:{ sortKey:"Title", sortDir:"asc", page:1 },
+     RECORDS:    { sortKey:"Risk", sortDir:"desc", page:1, selectedId:null }
    }
  };
 
@@ -590,7 +610,8 @@ var gap       = (typeof opts.gap === "number") ? opts.gap : 10;
 
  var topbar = el("div","docdash-topbar");
  var brand = el("div","docdash-brand");
- brand.innerHTML = '<span class="u-tag">(U)</span><span class="title">DOC SSM Dashboard</span>';
+ brand.appendChild(el("span","u-tag","(U)"));
+ brand.appendChild(el("span","title","DOC SSM Dashboard"));
 
  var tabs = el("div","docdash-tabs");
  function tabBtn(key, label){
@@ -636,7 +657,9 @@ statusPill.textContent = "Initialized (UI built)";
  function setLoading(isLoading, msg){
    STATE.loading = isLoading;
    if(isLoading){
-     statusPill.innerHTML = '<span class="spinner"></span>' + esc(msg || "Loading...");
+     statusPill.textContent = "";
+     statusPill.appendChild(el("span","spinner"));
+     statusPill.appendChild(document.createTextNode(msg || "Loading..."));
    } else {
      statusPill.textContent = msg || "Ready";
    }
@@ -715,7 +738,7 @@ function renderFOIA(){
     _foiaLoad().then(function(){
       render();
     }).catch(function(err){
-      console.error(err);
+      _fatal("FOIA Load", err);
       left.appendChild(_foiaPanelMsg("FOIA", "Load failed: " + (err && err.message ? err.message : err)));
     });
     left.appendChild(_foiaPanelMsg("FOIA", "Loading FOIA data..."));
@@ -935,11 +958,6 @@ function _foiaApplyFilters(raw){
   var f = STATE.filters.FOIA;
   var rows = raw.slice(0);
 
-  // Year filter (Requested date = StartDate)
-  if(f.year && f.year !== "All"){
-    rows = rows.filter(function(r){ return yearOf(r.StartDate) === f.year; });
-  }
-
   // Multi-select filters
   if(f.office && f.office.length){
     rows = rows.filter(function(r){ return f.office.indexOf(r.PositionStatus) > -1; });
@@ -989,7 +1007,7 @@ function _foiaApplyFilters(raw){
   clear.style.padding="6px 10px";
   on(clear,"click",function(){
     STATE.filters.FOIA = {
-      search:"", year:"All", office:[], status:[], opr:[], reqType:[], inactivity:"All", chartFilter:null
+      search:"", office:[], status:[], opr:[], reqType:[], inactivity:"All", chartFilter:null
     };
     if(!STATE.table.FOIA) STATE.table.FOIA = {};
     STATE.table.FOIA.activePage = 1;
@@ -1021,30 +1039,6 @@ function _foiaApplyFilters(raw){
   });
   r1.appendChild(inp);
   grid.appendChild(r1);
-
-  // Year dropdown from StartDate
-  var years = uniqSorted(raw.map(function(x){ return yearOf(x.StartDate); }).filter(function(y){ return !!y; }));
-  years.unshift("All");
-
-  var r2 = el("div","frow");
-  r2.appendChild(el("label",null,"Requested Year"));
-  var sel = el("select");
-  for(var i=0;i<years.length;i++){
-    var opt = el("option");
-    opt.value = years[i];
-    opt.textContent = years[i];
-    if(years[i] === STATE.filters.FOIA.year) opt.selected = true;
-    sel.appendChild(opt);
-  }
-  on(sel,"change",function(){
-    STATE.filters.FOIA.year = sel.value;
-    if(!STATE.table.FOIA) STATE.table.FOIA = {};
-    STATE.table.FOIA.activePage = 1;
-    STATE.table.FOIA.closedPage = 1;
-    render();
-  });
-  r2.appendChild(sel);
-  grid.appendChild(r2);
 
   // Chips (multi-select)
   grid.appendChild(_foiaChipMulti("Action Office (Sitting With)", uniqSorted(raw.map(function(x){return x.PositionStatus;})), STATE.filters.FOIA.office, function(v){
@@ -1278,16 +1272,26 @@ function _foiaRenderWorkQueueSplit(filtered){
   var b1 = el("div","panel-b");
   var table = el("table","tbl");
 
-  var cols = [
+  var st = STATE.table.FOIA;
+
+  var cols = (which === "closed") ? [
+    {k:"Title", t:"Case Number"},
+    {k:"LastActionTaken", t:"Action Taken"}
+  ] : [
     {k:"Title", t:"Case Number"},
     {k:"LastActionTaken", t:"Action Taken"},
     {k:"DaysSinceModified", t:"Inactivity"},
     {k:"CurrentStatus", t:"Action Needed"},
-    {k:"PositionStatus", t:"Sitting With"},
-    {k:"StartDate", t:"Requested"}
+    {k:"PositionStatus", t:"Sitting With"}
   ];
 
-  var st = STATE.table.FOIA;
+  var COL_RENDER = {
+    Title: function(r){ return tdLink(r.Title, function(){ st.selectedId = r.Id; render(); }); },
+    LastActionTaken: function(r){ return tdTxt(r.LastActionTaken); },
+    DaysSinceModified: function(r){ return tdHtml(inactivityBadge(toNum(r.DaysSinceModified))); },
+    CurrentStatus: function(r){ return tdTxt(r.CurrentStatus); },
+    PositionStatus: function(r){ return tdTxt(r.PositionStatus); }
+  };
 
   function getPage(){
     return (which === "closed") ? st.closedPage : st.activePage;
@@ -1302,10 +1306,10 @@ function _foiaRenderWorkQueueSplit(filtered){
     rows.sort(function(a,b){
       var va = a[key], vb = b[key];
 
-      if(key === "StartDate" || key === "ActionDate"){
+      if(key === "ActionDate"){
         va = new Date(va||0).getTime();
         vb = new Date(vb||0).getTime();
-      } else if(key === "DaysSinceModified"){
+      } else if(key === "DaysSinceModified" || key === "_InactivityDays"){
         va = toNum(va); vb = toNum(vb);
       } else {
         if(typeof va === "string") va = va.toLowerCase();
@@ -1361,12 +1365,10 @@ function _foiaRenderWorkQueueSplit(filtered){
         render();
       });
 
-      tr.appendChild(tdLink(r.Title, function(){ st.selectedId = r.Id; render(); }));
-      tr.appendChild(tdTxt(r.LastActionTaken));
-      tr.appendChild(tdHtml(inactivityBadge(toNum(r.DaysSinceModified))));
-      tr.appendChild(tdTxt(r.CurrentStatus));
-      tr.appendChild(tdTxt(r.PositionStatus));
-      tr.appendChild(tdTxt(fmtDate(r.StartDate)));
+      for(var ci=0; ci<cols.length; ci++){
+        var rend = COL_RENDER[cols[ci].k];
+        if(rend) tr.appendChild(rend(r));
+      }
 
       tbody.appendChild(tr);
     })(pageRows[i]);
@@ -1415,7 +1417,7 @@ function _foiaRenderWorkQueueSplit(filtered){
   // Title
   var titleBox = el("div","box");
   titleBox.appendChild(el("h3",null,item.Title || "(No Case Number)"));
-  titleBox.appendChild(el("div","muted","Requested: "+fmtDateTime(item.StartDate)+" • Last action date: "+fmtDateTime(item.ActionDate)));
+  titleBox.appendChild(el("div","muted","Last action date: "+fmtDateTime(item.ActionDate)));
   box.appendChild(titleBox);
 
   // Meta
@@ -1520,7 +1522,7 @@ function _foiaRenderWorkQueueSplit(filtered){
     _oiLoad().then(function(){
       render();
     }).catch(function(err){
-      console.error(err);
+      _fatal("OI Load", err);
       left.appendChild(_oiPanelMsg("Operating Instructions", "Load failed: " + (err && err.message ? err.message : err)));
     });
     left.appendChild(_oiPanelMsg("Operating Instructions", "Loading OI data..."));
@@ -1728,27 +1730,31 @@ function _oiChipMulti(label, values, selectedArr, onToggle){
   return r;
 }
 
-/* ===================== OI: KPI PANEL ===================== */ 
+/* ===================== OI: KPI PANEL (INCOMPLETE ONLY) ===================== */
 function _oiRenderKpis(raw, filtered){
   var p = el("div","panel");
   var h = el("div","panel-h");
-  h.appendChild(el("div",null,"OI KPIs"));
+  h.appendChild(el("div",null,"OI KPIs (Incomplete)"));
   p.appendChild(h);
 
   var b = el("div","panel-b");
 
+  function isIncomplete(r){ return r && r.CurrentStatus !== "Complete"; }
+  var incomplete = filtered.filter(isIncomplete);
+  var rawIncomplete = raw.filter(isIncomplete);
+
   var now = new Date().getTime();
   var overdue = 0;
   var due7 = 0;
-  for(var i=0;i<filtered.length;i++){
-    var d = new Date(filtered[i].DueDate || 0).getTime();
+  for(var i=0;i<incomplete.length;i++){
+    var d = new Date(incomplete[i].DueDate || 0).getTime();
     if(!d) continue;
     if(d < now) overdue++;
     else if(d < (now + 7*86400000)) due7++;
   }
 
   var row = el("div","kpiRow");
-  row.appendChild(kpi("OIs Shown", filtered.length, "Out of "+raw.length));
+  row.appendChild(kpi("OIs Shown", incomplete.length, "Out of "+rawIncomplete.length+" incomplete"));
   row.appendChild(kpi("Overdue", overdue, "Due date passed"));
   row.appendChild(kpi("Due in 7 Days", due7, "Upcoming"));
 
@@ -1819,14 +1825,42 @@ function _oiRenderCharts(filtered){
   return p;
 }
 
-/* ===================== OI: TABLE + DETAIL ===================== */ 
+/* ===================== OI: TABLE + DETAIL ===================== */
 function _oiRenderTableAndDetail(filtered){
   var container = el("div","tableWrap");
 
-  // Table panel
+  function isIncomplete(r){ return r && r.CurrentStatus !== "Complete"; }
+  function isComplete(r){ return r && r.CurrentStatus === "Complete"; }
+
+  var incomplete = filtered.filter(isIncomplete);
+  var complete   = filtered.filter(isComplete);
+
+  // Selection is shared: selecting a row in either table populates the same Detail panel.
+  var selectedSt = STATE.table.OI;
+
+  var left = el("div","tableStack");
+  left.appendChild(_oiBuildTablePanel(incomplete, "Operating Instructions — Incomplete", STATE.table.OI, selectedSt));
+  left.appendChild(_oiBuildTablePanel(complete,   "Operating Instructions — Complete",   STATE.table.OI_COMPLETE, selectedSt));
+
+  // Detail panel
+  var pDetail = el("div","panel");
+  var h2 = el("div","panel-h");
+  h2.appendChild(el("div",null,"Details"));
+  pDetail.appendChild(h2);
+
+  var b2 = el("div","panel-b");
+  b2.appendChild(_oiRenderDetail(selectedSt.selectedId));
+  pDetail.appendChild(b2);
+
+  container.appendChild(left);
+  container.appendChild(pDetail);
+  return container;
+}
+
+function _oiBuildTablePanel(rowsIn, headerTitle, st, selectedSt){
   var pTable = el("div","panel");
   var h1 = el("div","panel-h");
-  h1.appendChild(el("div",null,"Operating Instructions"));
+  h1.appendChild(el("div",null,headerTitle));
   pTable.appendChild(h1);
 
   var b1 = el("div","panel-b");
@@ -1839,8 +1873,6 @@ function _oiRenderTableAndDetail(filtered){
     {k:"DueDate", t:"Due"},
     {k:"Assignedto", t:"Assigned To"}
   ];
-
-  var st = STATE.table.OI;
 
   function sortRows(rows){
     var key = st.sortKey, dir = st.sortDir;
@@ -1866,11 +1898,12 @@ function _oiRenderTableAndDetail(filtered){
     return rows;
   }
 
-  var rows = sortRows(filtered.slice(0));
+  var rows = sortRows((rowsIn || []).slice(0));
   var total = rows.length;
   var pageSize = CONFIG.TABLE_PAGE_SIZE;
   var pages = Math.max(1, Math.ceil(total / pageSize));
   if(st.page > pages) st.page = pages;
+  if(st.page < 1) st.page = 1;
 
   var start = (st.page-1) * pageSize;
   var pageRows = rows.slice(start, start+pageSize);
@@ -1898,13 +1931,13 @@ function _oiRenderTableAndDetail(filtered){
   for(i=0;i<pageRows.length;i++){
     (function(r){
       var tr = el("tr");
-      if(st.selectedId === r.Id) tr.classList.add("rowSel");
+      if(selectedSt.selectedId === r.Id) tr.classList.add("rowSel");
       on(tr,"click",function(){
-        st.selectedId = r.Id;
+        selectedSt.selectedId = r.Id;
         render();
       });
 
-      tr.appendChild(tdLink(r.Title, function(){ st.selectedId=r.Id; render(); }));
+      tr.appendChild(tdLink(r.Title, function(){ selectedSt.selectedId = r.Id; render(); }));
       tr.appendChild(tdTxt(r.PositionStatus));
       tr.appendChild(tdTxt(r.CurrentStatus));
       tr.appendChild(tdTxt(fmtDate(r.DueDate)));
@@ -1932,20 +1965,7 @@ function _oiRenderTableAndDetail(filtered){
   b1.appendChild(pager);
 
   pTable.appendChild(b1);
-
-  // Detail panel
-  var pDetail = el("div","panel");
-  var h2 = el("div","panel-h");
-  h2.appendChild(el("div",null,"Details"));
-  pDetail.appendChild(h2);
-
-  var b2 = el("div","panel-b");
-  b2.appendChild(_oiRenderDetail(st.selectedId));
-  pDetail.appendChild(b2);
-
-  container.appendChild(pTable);
-  container.appendChild(pDetail);
-  return container;
+  return pTable;
 }
 
 function _oiRenderDetail(id){
@@ -2117,6 +2137,7 @@ if(typeof tdTxt === "undefined"){
 if(typeof tdHtml === "undefined"){
   var tdHtml = function(html){
     var td = el("td");
+    /* values must be esc()-wrapped by callers */
     td.innerHTML = html;
     return td;
   };
@@ -2145,7 +2166,7 @@ if(typeof tdLink === "undefined"){
     _recLoad().then(function(){
       render();
     }).catch(function(err){
-      console.error(err);
+      _fatal("Records Load", err);
       left.appendChild(_recPanelMsg("Records", "Load failed: " + (err && err.message ? err.message : err)));
     });
     left.appendChild(_recPanelMsg("Records", "Loading Records data..."));
@@ -2605,7 +2626,7 @@ function _recNormalizeRI(r){
       "Title","Email","Phone","Unit","Position",
       "PrimaryInventory","AdditionalInventories",
       "AppointmentLetterValidation","CertificationValidation","AFRIMSAccess","ERMAccess","Risk",
-      "Inventory","AppointmentLetter","Audited","ActionNeeded","AssignedTechnician"
+      "Inventory","AppointmentLetter","ActionNeeded","AssignedTechnician"
     ], f.search);
   });
 
@@ -2700,7 +2721,7 @@ function _recRenderPieRow(baseRM, baseRI){
 
   var grid = el("div","pieGrid");
   grid.style.display = "grid";
-  grid.style.gridTemplateColumns = "repeat(5, minmax(180px, 1fr))";
+  grid.style.gridTemplateColumns = "repeat(4, minmax(180px, 1fr))";
   grid.style.gap = "10px";
 
   var C_GREEN = "#2ecc71";
@@ -2722,24 +2743,6 @@ function _recRenderPieRow(baseRM, baseRI){
       };
     },
     { "Verified": C_GREEN, "Incorrect/Missing": C_RED, "No Response": C_BLACK }
-  ));
-
-  // Audits (from RI)
-  grid.appendChild(_recPiePanel(
-    "AUDITS",
-    _recPieData_Audits(baseRI),
-    "PIE_AUDIT",
-    function(clickedLabel){
-      var label = String(clickedLabel||"");
-      return function(rm){
-        // This is a pragmatic mapping since audit details sit in RI; we use RM Risk text as “signal”
-        var t = String(rm.Risk||"").toLowerCase();
-        if(label === "No Findings") return t.indexOf("audit") === -1;
-        if(label === "Findings") return t.indexOf("audit") > -1;
-        return true; // Under Review
-      };
-    },
-    { "No Findings": C_GREEN, "Under Review": C_YELL, "Findings": C_RED }
   ));
 
   // Members Training (from RM)
@@ -2786,7 +2789,7 @@ function _recRenderPieRow(baseRM, baseRI){
   return p;
 }
 
-/* ===================== PIE PANELS (SVG PIE, ES5) ===================== */ function _recPiePanel(title, data, key, makeFn, colorsByLabel){
+/* ===================== RECORDS CHART PANEL (grouped columns, click-to-filter) ===================== */ function _recPiePanel(title, data, key, makeFn, colorsByLabel){
   _recEnsureStateDefaults();
   var ui = STATE.recordsUI;
 
@@ -2806,38 +2809,24 @@ function _recRenderPieRow(baseRM, baseRI){
   hd.textContent = title;
   box.appendChild(hd);
 
-  var line = el("div","pieCounts");
-  line.style.display = "grid";
-  line.style.gridTemplateColumns = "repeat(3, 1fr)";
-  line.style.gap = "6px";
-  line.style.padding = "8px 10px 0 10px";
-
-  for(var i=0;i<(data||[]).length;i++){
-    var it = data[i];
-    var pill = el("div","muted", String(it.label || "") + " ");
-    pill.style.display = "flex";
-    pill.style.justifyContent = "space-between";
-    pill.style.alignItems = "center";
-    pill.style.fontSize = "12px";
-    pill.style.padding = "2px 6px";
-    pill.style.borderRadius = "10px";
-    pill.style.background = "rgba(255,255,255,.55)";
-    pill.style.color = "#111";
-
-    var cnt = el("div",null,String(it.value || 0));
-    cnt.style.fontWeight = "800";
-    pill.appendChild(cnt);
-
-    line.appendChild(pill);
-  }
-  box.appendChild(line);
-
   var body = el("div","pieBody");
   body.style.padding = "6px 10px 10px 10px";
 
   var activeLabel = (ui.pieFilter && ui.pieFilter.key === key) ? ui.pieFilter.value : null;
 
-  var svg = _recBuildPieSvg(data, activeLabel, function(label){
+  // Map color-by-label onto each bar's {label,value,color} pair for renderBarChart
+  var pairs = [];
+  for(var i=0;i<(data||[]).length;i++){
+    var it = data[i];
+    var lbl = String(it.label || "");
+    pairs.push({
+      label: lbl,
+      value: it.value || 0,
+      color: (colorsByLabel && colorsByLabel[lbl]) ? colorsByLabel[lbl] : null
+    });
+  }
+
+  renderBarChart(body, "", pairs, activeLabel, function(label){
     if(ui.pieFilter && ui.pieFilter.key === key && ui.pieFilter.value === label){
       ui.pieFilter = null;
       render();
@@ -2849,106 +2838,13 @@ function _recRenderPieRow(baseRM, baseRI){
       fn: (typeof makeFn === "function" ? makeFn(label) : null)
     };
     render();
-  }, colorsByLabel || null);
+  });
 
-  body.appendChild(svg);
-
-  var leg = el("div","pieLegend");
-  leg.style.display = "grid";
-  leg.style.gridTemplateColumns = "1fr";
-  leg.style.gap = "4px";
-  leg.style.marginTop = "6px";
-
-  for(i=0;i<(data||[]).length;i++){
-    (function(itm){
-      var a = el("div","chip", itm.label);
-      a.style.cursor = "pointer";
-      if(activeLabel === itm.label) a.classList.add("on");
-      on(a,"click",function(){
-        if(ui.pieFilter && ui.pieFilter.key === key && ui.pieFilter.value === itm.label){
-          ui.pieFilter = null;
-        } else {
-          ui.pieFilter = {
-            key: key,
-            value: itm.label,
-            fn: (typeof makeFn === "function" ? makeFn(itm.label) : null)
-          };
-        }
-        render();
-      });
-      leg.appendChild(a);
-    })(data[i]);
-  }
-
-  body.appendChild(leg);
   box.appendChild(body);
-
   return box;
 }
 
-function _recBuildPieSvg(data, activeLabel, onClick, colorsByLabel){
-  var total = 0, i;
-  for(i=0;i<(data||[]).length;i++) total += (data[i].value || 0);
-  if(total <= 0) total = 1;
-
-  var w = 220, h = 140;
-  var cx = 80, cy = 70, r = 55;
-
-  // ✅ QUOTED namespace (prevents syntax error)
-  var SVG_NS = "http://www.w3.org/2000/svg";
-
-  var svg = document.createElementNS(SVG_NS, "svg");
-  svg.setAttribute("viewBox","0 0 "+w+" "+h);
-  svg.style.width = "100%";
-  svg.style.height = "140px";
-
-  var start = -Math.PI/2;
-
-  for(i=0;i<(data||[]).length;i++){
-    var v = (data[i].value || 0);
-    var ang = (v/total) * Math.PI * 2;
-    var end = start + ang;
-
-    var path = document.createElementNS(SVG_NS, "path");
-    var d = _recPieArcPath(cx, cy, r, start, end);
-    path.setAttribute("d", d);
-
-    var lbl = String(data[i].label || "");
-    var fill = (colorsByLabel && colorsByLabel[lbl]) ? colorsByLabel[lbl] : "#bdc3c7";
-    path.setAttribute("fill", fill);
-
-    if(activeLabel && lbl === activeLabel){
-      path.setAttribute("stroke","#111");
-      path.setAttribute("stroke-width","3");
-    } else {
-      path.setAttribute("stroke","rgba(0,0,0,.12)");
-      path.setAttribute("stroke-width","1");
-    }
-
-    (function(label){
-      path.style.cursor = "pointer";
-      path.addEventListener("click", function(){
-        if(typeof onClick === "function") onClick(label);
-      });
-    })(lbl);
-
-    svg.appendChild(path);
-    start = end;
-  }
-
-  return svg;
-}
-
-function _recPieArcPath(cx, cy, r, a0, a1){
-  if(a1 === a0) a1 = a0 + 0.00001;
-  var x0 = cx + Math.cos(a0)*r;
-  var y0 = cy + Math.sin(a0)*r;
-  var x1 = cx + Math.cos(a1)*r;
-  var y1 = cy + Math.sin(a1)*r;
-  var large = (a1 - a0) > Math.PI ? 1 : 0;
-  return "M "+cx+" "+cy+" L "+x0+" "+y0+" A "+r+" "+r+" 0 "+large+" 1 "+x1+" "+y1+" Z"; }
-
-/* ===================== PIE DATA BUILDERS ===================== */ function _recPieData_AppointmentLetters(riRows){
+/* ===================== CHART DATA BUILDERS ===================== */ function _recPieData_AppointmentLetters(riRows){
   var bad=0, ok=0, nr=0;
   for(var i=0;i<(riRows||[]).length;i++){
     var s = String(riRows[i].AppointmentLetter||"");
@@ -2961,21 +2857,6 @@ function _recPieArcPath(cx, cy, r, a0, a1){
     { label:"Verified", value:ok },
     { label:"Incorrect/Missing", value:bad },
     { label:"No Response", value:nr }
-  ];
-}
-function _recPieData_Audits(riRows){
-  var ur=0, fd=0, nf=0;
-  for(var i=0;i<(riRows||[]).length;i++){
-    var s = String(riRows[i].Audited||"");
-    var cls = _recClassRI_Audit(s);
-    if(cls === "good") nf++;
-    else if(cls === "warn") fd++;
-    else ur++;
-  }
-  return [
-    { label:"No Findings", value:nf },
-    { label:"Under Review", value:ur },
-    { label:"Findings", value:fd }
   ];
 }
 function _recPieData_Training(rmRows){
@@ -3248,16 +3129,17 @@ function _recApptLabelForRM(rm){
   comp.appendChild(el("div","k","Compliance"));
 
   var snap = el("div",null);
+  /* _recBadgeHtml emits pre-escaped <span> markup; values must be esc()-wrapped inside that helper */
   snap.innerHTML =
     _recBadgeHtml(apptTxt || "Appointment Letter", _recClassRM_Appt(apptTxt)) + " " +
-    _recBadgeHtml(certTxt || "Training", _recClassRM_Cert(certTxt)) + " " +
-    _recBadgeHtml(afrTxt  || "AFRIMS", _recClassRM_Afrims(afrTxt)) + " " +
-    _recBadgeHtml(ermTxt  || "ERM", _recClassRM_Erm(ermTxt));
+    _recBadgeHtml(certTxt || "Training Certification", _recClassRM_Cert(certTxt)) + " " +
+    _recBadgeHtml(afrTxt  || "AFRIMS Access", _recClassRM_Afrims(afrTxt)) + " " +
+    _recBadgeHtml(ermTxt  || "ERM Access", _recClassRM_Erm(ermTxt));
   comp.appendChild(snap);
 
   var lm = el("div","meta");
   var c1 = _recKvIf("Appointment Letter", apptTxt);
-  var c2 = _recKvIf("Training / Certification", certTxt);
+  var c2 = _recKvIf("Training Certification", certTxt);
   var c3 = _recKvIf("AFRIMS Access", afrTxt);
   var c4 = _recKvIf("ERM Access", ermTxt);
   if(c1) lm.appendChild(c1);
@@ -3351,17 +3233,6 @@ function _recClassRI_Appt(v){
   if(!v) return "bad";
   return "bad";
 }
-function _recClassRI_Audit(v){
-  v = String(v||"").toLowerCase();
-  if(v === "no findings") return "good";
-  if(v.indexOf("audited") > -1) return "warn";
-  if(v.indexOf("findings") > -1) return "warn";
-  if(v.indexOf("needs audit") > -1) return "bad";
-  if(v.indexOf("does not exist") > -1) return "bad";
-  if(!v) return "bad";
-  return "bad";
-}
-
 /* ---------- Risk grouping ---------- */ function _recRiskGroup(riskText){
   var t = String(riskText||"").toLowerCase();
   if(!t || t === "all validated") return "All Validated";
@@ -3583,7 +3454,7 @@ function _recPanelMsg(title, msg){
 
  on(refreshBtn,"click",function(){
    // Next parts will replace this with real reloading logic
-   setLoading(true,"Refresh requested (TODO)...");
+   setLoading(true,"Refreshing...");
    setTimeout(function(){ setLoading(false,"Ready"); render(); }, 300);
  });
 
@@ -3592,3 +3463,6 @@ function _recPanelMsg(title, msg){
 
 })();
 </script>
+
+</body>
+</html>
